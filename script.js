@@ -137,7 +137,7 @@ function generateStudents(count) {
       display,
       id: uid + '@' + DOMAIN,
       license: rand() < 0.25 ? LICENSE_PA : LICENSE_BASIC,
-      hasKey: rand() < 0.05, // 일부 계정에 암호 재설정 아이콘
+      hasKey: false, // 열쇠 아이콘은 암호를 초기화한 계정에만 표시
     });
   }
 
@@ -416,14 +416,17 @@ document.querySelectorAll('button').forEach((btn) => {
   }
 });
 
-// [취소] → 확인 팝업
+// [취소] → 확인 팝업 (단일/여러 사용자 마법사 공용)
 const cancelConfirm = document.getElementById('cancelConfirm');
+let confirmYesAction = null; // [예] 클릭 시 실행할 동작
+
 document.getElementById('wizCancel').addEventListener('click', () => {
+  confirmYesAction = closeWizard;
   cancelConfirm.hidden = false;
 });
 document.getElementById('confirmYes').addEventListener('click', () => {
   cancelConfirm.hidden = true;
-  closeWizard();
+  if (confirmYesAction) confirmYesAction();
 });
 ['confirmNo', 'confirmX'].forEach((id) => {
   document.getElementById(id).addEventListener('click', () => (cancelConfirm.hidden = true));
@@ -948,3 +951,343 @@ function finishWizard() {
   closeWizard();
   showPage('users');
 }
+
+// =====================================================
+// 여러 사용자 추가 마법사
+// =====================================================
+const multiWizard = document.getElementById('multiUserWizard');
+const M_STEPS = ['기본 사항', '제품 라이선스', '마침'];
+let mCurrentStep = 1;
+
+// 그리드 열 정의 (이름/성은 열 제거 가능)
+const M_ALL_COLS = [
+  { key: 'first', label: '이름', removable: true },
+  { key: 'last', label: '성', removable: true },
+  { key: 'display', label: '표시 이름', required: true },
+  { key: 'username', label: '사용자 이름', required: true },
+  { key: 'domain', label: '도메인' },
+];
+let multiCols = [...M_ALL_COLS];
+
+function emptyMultiRow() {
+  return { first: '', last: '', display: '', username: '', domain: DOMAIN };
+}
+let multiRows = [emptyMultiRow(), emptyMultiRow(), emptyMultiRow()];
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ----- 그리드 렌더링 -----
+function renderMultiGrid() {
+  const grid = document.getElementById('multiGrid');
+  const head =
+    '<tr>' +
+    multiCols
+      .map(
+        (c) =>
+          `<th>${c.label}${c.required ? ' <span class="req">*</span>' : ''}${
+            c.removable
+              ? ` <button type="button" class="col-remove" data-key="${c.key}" title="열 제거">
+                   <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+                 </button>`
+              : ''
+          }</th>`
+      )
+      .join('') +
+    '<th class="row-del-col"></th></tr>';
+
+  const body = multiRows
+    .map(
+      (r, i) =>
+        '<tr>' +
+        multiCols
+          .map((c) => {
+            if (c.key === 'domain') {
+              return `<td><select class="grid-input" data-row="${i}" data-key="domain"><option>${DOMAIN}</option></select></td>`;
+            }
+            return `<td><input class="grid-input" data-row="${i}" data-key="${c.key}" value="${escapeHtml(r[c.key] || '')}"></td>`;
+          })
+          .join('') +
+        `<td class="row-del-col"><button type="button" class="row-remove" data-row="${i}" title="행 제거">
+           <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+         </button></td></tr>`
+    )
+    .join('');
+
+  grid.innerHTML = `<thead>${head}</thead><tbody>${body}</tbody>`;
+  updateMNextState();
+}
+
+// 그리드 입력/삭제 (위임)
+document.getElementById('multiGrid').addEventListener('input', (e) => {
+  const el = e.target;
+  if (el.classList.contains('grid-input')) {
+    multiRows[Number(el.dataset.row)][el.dataset.key] = el.value;
+    updateMNextState();
+  }
+});
+
+document.getElementById('multiGrid').addEventListener('click', (e) => {
+  const colBtn = e.target.closest('.col-remove');
+  if (colBtn) {
+    multiCols = multiCols.filter((c) => c.key !== colBtn.dataset.key);
+    renderMultiGrid();
+    return;
+  }
+  const rowBtn = e.target.closest('.row-remove');
+  if (rowBtn && multiRows.length > 1) {
+    multiRows.splice(Number(rowBtn.dataset.row), 1);
+    renderMultiGrid();
+  }
+});
+
+// [행 추가]
+document.getElementById('mAddRow').addEventListener('click', () => {
+  multiRows.push(emptyMultiRow());
+  renderMultiGrid();
+});
+
+// ----- CSV 섹션 토글 -----
+document.getElementById('mCsvHeader').addEventListener('click', () => {
+  const section = document.getElementById('mCsvSection');
+  section.hidden = !section.hidden;
+  document.getElementById('mCsvHeader').querySelector('.collapse-chevron').classList.toggle('up', !section.hidden);
+});
+
+// ----- CSV 서식 파일 다운로드 (실제 M365 서식과 동일) -----
+const CSV_HEADER =
+  '사용자 이름,이름,성,표시 이름,직함,부서,사무실 번호,사무실 전화,휴대폰,팩스,대체 전자 메일 주소,주소,구/군/시,시/도,우편 번호,국가 또는 지역';
+const CSV_SAMPLE_ROWS = [
+  `hong123@${DOMAIN},길동,홍,[1학년 1반]홍길동,,,,,,,,,,,,`,
+  `kim456@${DOMAIN},철수,김,[1학년 2반]김철수,,,,,,,,,,,,`,
+  `lee789@${DOMAIN},영희,이,[2학년 1반]이영희,,,,,,,,,,,,`,
+];
+
+function downloadCsv(filename, content) {
+  if (typeof URL.createObjectURL !== 'function') return; // 테스트 환경 보호
+  const blob = new Blob(['﻿' + content], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('mCsvHeaderOnly').addEventListener('click', (e) => {
+  e.preventDefault();
+  downloadCsv('사용자_추가_서식.csv', CSV_HEADER + '\n');
+});
+
+document.getElementById('mCsvSample').addEventListener('click', (e) => {
+  e.preventDefault();
+  downloadCsv('사용자_추가_샘플.csv', CSV_HEADER + '\n' + CSV_SAMPLE_ROWS.join('\n') + '\n');
+});
+
+// ----- CSV 업로드 → 그리드 채우기 -----
+// 1열: 계정(사용자 이름, 도메인 포함 가능), 이후 이름, 성, 표시 이름 순 (나머지 열은 무시)
+function parseMultiCsv(text) {
+  const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter((l) => l.trim());
+  let rows = lines.map((l) => l.split(',').map((c) => c.trim()));
+  if (rows.length && /사용자 이름|계정|username/i.test(rows[0][0])) rows = rows.slice(1);
+  return rows
+    .filter((cols) => cols[0])
+    .map(([account = '', first = '', last = '', display = '']) => {
+      const [username, domain] = account.split('@');
+      return {
+        username,
+        first,
+        last,
+        display: display || last + first,
+        domain: domain || DOMAIN,
+      };
+    });
+}
+
+document.getElementById('mBrowseBtn').addEventListener('click', () => {
+  document.getElementById('mCsvInput').click();
+});
+
+document.getElementById('mCsvInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('mCsvFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const parsed = parseMultiCsv(reader.result);
+    if (parsed.length) {
+      multiCols = [...M_ALL_COLS]; // 제거했던 열 복원
+      multiRows = parsed;
+      renderMultiGrid();
+      document.getElementById('mCsvStatus').textContent = `${parsed.length}명의 사용자 정보를 불러왔습니다.`;
+    } else {
+      document.getElementById('mCsvStatus').textContent = '가져올 사용자 정보가 없습니다. 파일 형식을 확인하세요.';
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ----- 라이선스 목록 렌더링 -----
+document.getElementById('mLicenseList').innerHTML = LICENSES.map(
+  (lic, i) => `
+  <label class="license-item">
+    <input type="checkbox" class="m-lic-check" data-index="${i}">
+    <span>
+      <div class="license-name">${lic.name}</div>
+      <div class="license-avail">${lic.avail}</div>
+    </span>
+  </label>`
+).join('');
+
+function mSelectedLicenses() {
+  return [...document.querySelectorAll('.m-lic-check:checked')].map(
+    (cb) => LICENSES[cb.dataset.index].name
+  );
+}
+
+document.querySelectorAll('.m-lic-check').forEach((cb) => {
+  cb.addEventListener('change', () => {
+    if (cb.checked) {
+      document.querySelector('input[name="mLicMode"][value="assign"]').checked = true;
+    }
+    document.getElementById('mLicCount').textContent = mSelectedLicenses().length;
+    updateMNextState();
+  });
+});
+
+document.querySelectorAll('input[name="mLicMode"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    if (radio.value === 'none') {
+      document.querySelectorAll('.m-lic-check').forEach((cb) => (cb.checked = false));
+      document.getElementById('mLicCount').textContent = 0;
+    }
+    updateMNextState();
+  });
+});
+
+// ----- 단계 표시/전환 -----
+function renderMStepper() {
+  document.getElementById('mStepper').innerHTML = M_STEPS.map((label, i) => {
+    const n = i + 1;
+    const state = n < mCurrentStep ? 'done' : n === mCurrentStep ? 'current' : '';
+    const check =
+      n < mCurrentStep
+        ? '<svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.8"><polyline points="2.5,6.5 5,9 9.5,3.5"/></svg>'
+        : '';
+    return `
+    <div class="step-item ${state}">
+      <span class="step-circle">${check}</span>
+      <span class="step-label">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+function validMultiRows() {
+  return multiRows.filter((r) => r.display.trim() && r.username.trim());
+}
+
+function updateMNextState() {
+  const next = document.getElementById('mNext');
+  if (mCurrentStep === 1) {
+    next.disabled = validMultiRows().length === 0;
+  } else if (mCurrentStep === 2) {
+    const mode = document.querySelector('input[name="mLicMode"]:checked').value;
+    next.disabled = mode === 'assign' && mSelectedLicenses().length === 0;
+  } else {
+    next.disabled = false;
+  }
+}
+
+function showMStep(n) {
+  mCurrentStep = n;
+  document.querySelectorAll('.m-step').forEach((s) => {
+    s.hidden = Number(s.dataset.step) !== n;
+  });
+  document.getElementById('mBack').hidden = n === 1;
+  document.getElementById('mNext').textContent = n === 3 ? '추가 완료' : '다음';
+  renderMStepper();
+  updateMNextState();
+  multiWizard.querySelector('.wizard-content').scrollTop = 0;
+}
+
+// ----- 검토 화면 -----
+function fillMultiReview() {
+  const rows = validMultiRows();
+  const names = rows.map((r) => r.display.trim());
+  const headNames = names.slice(0, 3).join(', ');
+  document.getElementById('mRevUsers').textContent =
+    `총 ${rows.length}명 — ${headNames}${names.length > 3 ? ` 외 ${names.length - 3}명` : ''}`;
+
+  document.getElementById('mRevLoc').textContent = '위치: ' + document.getElementById('mLocation').value;
+  const mode = document.querySelector('input[name="mLicMode"]:checked').value;
+  document.getElementById('mRevLicense').textContent =
+    '라이선스: ' + (mode === 'none' ? '제품 라이선스 없음' : mSelectedLicenses().join(', '));
+}
+
+// ----- 열기/닫기/완료 -----
+function openMultiWizard() {
+  multiWizard.hidden = false;
+  showMStep(1);
+}
+
+function closeMultiWizard() {
+  multiWizard.hidden = true;
+  multiCols = [...M_ALL_COLS];
+  multiRows = [emptyMultiRow(), emptyMultiRow(), emptyMultiRow()];
+  renderMultiGrid();
+  document.querySelectorAll('.m-lic-check').forEach((cb) => (cb.checked = false));
+  document.querySelector('input[name="mLicMode"][value="assign"]').checked = true;
+  document.getElementById('mLicCount').textContent = 0;
+  document.getElementById('mCsvSection').hidden = true;
+  document.getElementById('mCsvHeader').querySelector('.collapse-chevron').classList.remove('up');
+  document.getElementById('mCsvFileName').textContent = '선택된 파일 없음';
+  document.getElementById('mCsvStatus').textContent = '';
+}
+
+function finishMultiWizard() {
+  const mode = document.querySelector('input[name="mLicMode"]:checked').value;
+  const licenseStr = mode === 'none' ? '-' : mSelectedLicenses().join(' , ');
+
+  validMultiRows().forEach((r) => {
+    STUDENTS.push({
+      display: r.display.trim(),
+      id: r.username.trim() + '@' + (r.domain || DOMAIN),
+      license: licenseStr,
+      hasKey: false,
+    });
+  });
+  STUDENTS.sort((a, b) => a.display.localeCompare(b.display, 'ko'));
+  renderUsers(STUDENTS);
+
+  closeMultiWizard();
+  showPage('users');
+}
+
+// [여러 사용자 추가] 버튼 연결
+document.querySelectorAll('button').forEach((btn) => {
+  if (btn.textContent.trim() === '여러 사용자 추가') {
+    btn.addEventListener('click', openMultiWizard);
+  }
+});
+
+document.getElementById('mBack').addEventListener('click', () => showMStep(mCurrentStep - 1));
+
+document.getElementById('mNext').addEventListener('click', () => {
+  if (mCurrentStep < 3) {
+    if (mCurrentStep === 2) fillMultiReview();
+    showMStep(mCurrentStep + 1);
+  } else {
+    finishMultiWizard();
+  }
+});
+
+document.getElementById('mCancel').addEventListener('click', () => {
+  confirmYesAction = closeMultiWizard;
+  cancelConfirm.hidden = false;
+});
+
+// 초기 그리드 렌더링
+renderMultiGrid();

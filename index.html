@@ -996,6 +996,128 @@
   </div>
 </div>
 
+<!-- ===== 여러 사용자 추가 마법사 ===== -->
+<div class="wizard-root" id="multiUserWizard" hidden>
+  <div class="wizard-panel">
+    <div class="wizard-header">
+      <h1>여러 사용자 추가</h1>
+    </div>
+
+    <div class="wizard-body">
+      <aside class="wizard-stepper" id="mStepper"></aside>
+
+      <div class="wizard-content">
+
+        <!-- 1단계: 기본 사항 (그리드 + CSV) -->
+        <section class="m-step" data-step="1">
+          <h2 class="wizard-title">기본 사항 설정</h2>
+          <p class="wizard-desc">추가할 사용자의 정보를 직접 입력하거나, CSV 파일을 업로드하여 한 번에 추가하세요.</p>
+
+          <div class="multi-grid-wrap">
+            <table class="multi-grid" id="multiGrid"></table>
+          </div>
+          <button type="button" class="btn add-row-btn" id="mAddRow">
+            <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6">
+              <line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/>
+            </svg>
+            행 추가
+          </button>
+
+          <div class="section-divider"></div>
+
+          <button type="button" class="collapse-header" id="mCsvHeader">
+            <span class="collapse-title">사용자 정보가 포함된 CSV 파일 업로드</span>
+            <svg class="collapse-chevron" viewBox="0 0 12 12" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4">
+              <polyline points="2,4 6,8 10,4"/>
+            </svg>
+          </button>
+
+          <div id="mCsvSection" hidden>
+            <p class="csv-desc">
+              CSV 파일을 사용하여 여러 사용자를 한 번에 추가할 수 있습니다. 1열은 계정(사용자 이름)이며,
+              이후 열은 이름, 성, 표시 이름 순서입니다. 아래 서식 파일을 다운로드하여 사용하세요.
+            </p>
+            <a href="#" class="inline-link csv-link" id="mCsvHeaderOnly">머리글만 포함된 CSV 파일 다운로드</a>
+            <a href="#" class="inline-link csv-link" id="mCsvSample">머리글 및 샘플 사용자 정보가 포함된 CSV 파일 다운로드</a>
+
+            <div class="csv-upload-row">
+              <button type="button" class="btn" id="mBrowseBtn">찾아보기</button>
+              <span class="csv-filename" id="mCsvFileName">선택된 파일 없음</span>
+              <input type="file" id="mCsvInput" accept=".csv" hidden>
+            </div>
+            <p class="csv-status" id="mCsvStatus"></p>
+          </div>
+        </section>
+
+        <!-- 2단계: 제품 라이선스 -->
+        <section class="m-step" data-step="2" hidden>
+          <h2 class="wizard-title">제품 라이선스 할당</h2>
+          <p class="wizard-desc">추가하는 모든 사용자에게 동일한 위치와 라이선스가 할당됩니다.</p>
+
+          <div class="form-field loc-field">
+            <label>위치 선택 <span class="req">*</span></label>
+            <select class="text-input" id="mLocation">
+              <option>한국</option>
+              <option>미국</option>
+              <option>일본</option>
+            </select>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <div class="collapse-header">
+            <span class="collapse-title">라이선스(<span id="mLicCount">0</span>) <span class="req">*</span></span>
+          </div>
+
+          <label class="radio-line">
+            <input type="radio" name="mLicMode" value="assign" checked>
+            <span>사용자에게 제품 라이선스 할당</span>
+          </label>
+
+          <div class="license-list" id="mLicenseList"></div>
+
+          <label class="radio-line">
+            <input type="radio" name="mLicMode" value="none">
+            <span>제품 라이선스 없이 사용자 만들기(권장하지 않음)</span>
+          </label>
+          <p class="radio-note">
+            제품 라이선스를 할당하기 전까지는 Microsoft 365에 액세스할 수 없거나 액세스가 제한될
+            수 있습니다.
+          </p>
+        </section>
+
+        <!-- 3단계: 마침 -->
+        <section class="m-step" data-step="3" hidden>
+          <h2 class="wizard-title">검토 후 완료</h2>
+
+          <div class="review-box">
+            <div class="review-group review-intro">
+              <h3>할당된 설정</h3>
+              <p>추가를 완료하기 전에 사용자 정보 및 설정을 검토하세요.</p>
+            </div>
+            <div class="review-group">
+              <h3>추가할 사용자</h3>
+              <p id="mRevUsers">-</p>
+            </div>
+            <div class="review-group">
+              <h3>제품 라이선스</h3>
+              <p id="mRevLoc">위치: 한국</p>
+              <p id="mRevLicense">-</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="wizard-footer">
+      <button class="btn" id="mBack" hidden>뒤로</button>
+      <button class="btn btn-primary" id="mNext" disabled>다음</button>
+      <button class="btn wizard-cancel" id="mCancel">취소</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== 마법사 취소 확인 팝업 ===== -->
 <div class="confirm-overlay" id="cancelConfirm" hidden>
   <div class="confirm-dialog">
