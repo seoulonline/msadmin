@@ -152,8 +152,16 @@ const STUDENTS = generateStudents(100);
 const tbody = document.getElementById('usersTbody');
 let lastRendered = STUDENTS; // 현재 화면에 그려진 목록 (검색 필터 반영)
 
+// MFA 페이지(mfa.html) 등 다른 탭과 학생 명단 공유
+function saveStudentsToStorage() {
+  try {
+    localStorage.setItem('msAdminStudents', JSON.stringify(STUDENTS));
+  } catch (e) { /* 저장 불가 환경 무시 */ }
+}
+
 function renderUsers(list) {
   lastRendered = list;
+  saveStudentsToStorage();
   tbody.innerHTML = list
     .map(
       (s, i) => `
@@ -1291,3 +1299,15 @@ document.getElementById('mCancel').addEventListener('click', () => {
 
 // 초기 그리드 렌더링
 renderMultiGrid();
+
+// =====================================================
+// 다단계 인증: Entra 관리 센터 페이지를 새 탭으로 열기
+// =====================================================
+document.querySelectorAll('button').forEach((btn) => {
+  if (btn.textContent.trim() === '다단계 인증' && btn.classList.contains('toolbar-btn')) {
+    btn.addEventListener('click', () => {
+      saveStudentsToStorage();
+      window.open('mfa.html', '_blank');
+    });
+  }
+});
