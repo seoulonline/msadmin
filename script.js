@@ -200,6 +200,7 @@ function updateSelectionUI() {
   checks.forEach((cb) => cb.closest('tr').classList.toggle('selected', cb.checked));
   document.getElementById('toolbarDefault').hidden = selected.length > 0;
   document.getElementById('toolbarSelected').hidden = selected.length === 0;
+  document.getElementById('selCountNum').textContent = `${selected.length}개 선택됨`;
   const checkAll = document.getElementById('checkAll');
   checkAll.checked = checks.length > 0 && selected.length === checks.length;
 }
@@ -429,6 +430,7 @@ const cancelConfirm = document.getElementById('cancelConfirm');
 let confirmYesAction = null; // [예] 클릭 시 실행할 동작
 
 document.getElementById('wizCancel').addEventListener('click', () => {
+  document.getElementById('confirmMsg').textContent = '사용자에 대해 입력한 모든 정보가 손실됩니다.';
   confirmYesAction = closeWizard;
   cancelConfirm.hidden = false;
 });
@@ -1293,6 +1295,7 @@ document.getElementById('mNext').addEventListener('click', () => {
 });
 
 document.getElementById('mCancel').addEventListener('click', () => {
+  document.getElementById('confirmMsg').textContent = '사용자에 대해 입력한 모든 정보가 손실됩니다.';
   confirmYesAction = closeMultiWizard;
   cancelConfirm.hidden = false;
 });
@@ -1310,4 +1313,772 @@ document.querySelectorAll('button').forEach((btn) => {
       window.open('mfa.html', '_blank');
     });
   }
+});
+
+// =====================================================
+// 활성 팀 및 그룹
+// =====================================================
+const TEAMS = [
+  { name: '서울온라인학교 교직원', desc: '교직원 협업 공간', email: 'seoulstaff@' + DOMAIN, type: '팀', owners: 'TT강현욱', members: 18 },
+  { name: '1학년 1반', desc: '1학년 1반 학급 팀', email: 'grade1c1@' + DOMAIN, type: '팀', owners: '[1학년 1반]국어', members: 12 },
+  { name: '정보안전팀', desc: '', email: 'security@' + DOMAIN, type: '팀', owners: 'TT강현욱', members: 5 },
+];
+
+const teamsTbody = document.getElementById('teamsTbody');
+let teamsRendered = TEAMS;
+
+function renderTeams(list = TEAMS) {
+  teamsRendered = list;
+  teamsTbody.innerHTML = list
+    .map(
+      (t, i) => `
+    <tr data-index="${i}">
+      <td class="col-check"><input type="checkbox" class="team-check"></td>
+      <td><span class="display-name">${t.name}</span></td>
+      <td>${t.email}</td>
+      <td>
+        <span class="sync-icon" title="클라우드">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.3">
+            <path d="M14.5 8a4 4 0 0 0-7.8-1A3.5 3.5 0 0 0 5 14h9a3 3 0 0 0 .5-6z"/>
+          </svg>
+        </span>
+      </td>
+      <td>
+        ${t.type === '팀' ? `
+        <span class="teamstat-icon" title="팀">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.3">
+            <circle cx="6.5" cy="6" r="2.2"/><circle cx="13.5" cy="6" r="2.2"/>
+            <path d="M2.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5M9.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5"/>
+          </svg>
+        </span>` : ''}
+      </td>
+    </tr>`
+    )
+    .join('');
+}
+renderTeams();
+
+document.getElementById('teamCheckAll').addEventListener('change', (e) => {
+  document.querySelectorAll('.team-check').forEach((cb) => (cb.checked = e.target.checked));
+});
+
+document.getElementById('teamSearch').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  renderTeams(
+    q ? TEAMS.filter((t) => t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q)) : TEAMS
+  );
+});
+
+// =====================================================
+// 사람 선택기 (소유자/구성원 자동 완성 + 칩)
+// =====================================================
+function setupPeoplePicker(rootId, options = {}) {
+  const root = document.getElementById(rootId);
+  const input = root.querySelector('.picker-input');
+  const dropdown = root.querySelector('.picker-dropdown');
+  const chipsEl = root.querySelector('.picker-chips');
+  const max = options.max || Infinity;
+  let selected = [];
+
+  function renderChips() {
+    chipsEl.innerHTML = selected
+      .map(
+        (u, i) => `
+      <span class="person-chip">
+        <span class="chip-avatar" style="background:${avatarColor(u.display)}">
+          <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="10" cy="7" r="3.2"/><path d="M4 17c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"/>
+          </svg>
+        </span>
+        <span>${u.display}</span>
+        <button type="button" class="chip-x" data-index="${i}" title="제거">
+          <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>
+      </span>`
+      )
+      .join('');
+
+    // 최대 인원 도달 시 입력 잠금
+    const full = selected.length >= max;
+    input.disabled = full;
+    if (options.limitEl) document.getElementById(options.limitEl).hidden = !full;
+    if (options.hintEl) document.getElementById(options.hintEl).hidden = selected.length > 0;
+    if (options.onChange) options.onChange(selected);
+  }
+
+  function showMatches() {
+    const q = input.value.trim().toLowerCase();
+    if (!q) {
+      dropdown.hidden = true;
+      return;
+    }
+    const picked = new Set(selected.map((u) => u.id));
+    const matches = STUDENTS.filter(
+      (u) => !picked.has(u.id) && (u.display.toLowerCase().includes(q) || u.id.toLowerCase().includes(q))
+    ).slice(0, 8);
+
+    dropdown.innerHTML = matches.length
+      ? matches
+          .map(
+            (u, i) => `
+        <div class="picker-item" data-id="${u.id}">
+          <span class="picker-avatar" style="background:${avatarColor(u.display)}">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="10" cy="7" r="3.2"/><path d="M4 17c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"/>
+            </svg>
+          </span>
+          <span>
+            <div class="picker-item-name">${u.display}</div>
+            <div class="picker-item-id">${u.id}</div>
+          </span>
+        </div>`
+          )
+          .join('')
+      : '<div class="picker-empty">일치하는 사용자가 없습니다.</div>';
+    dropdown.hidden = false;
+  }
+
+  input.addEventListener('input', showMatches);
+  input.addEventListener('focus', showMatches);
+  input.addEventListener('blur', () => setTimeout(() => (dropdown.hidden = true), 150));
+
+  dropdown.addEventListener('mousedown', (e) => {
+    const item = e.target.closest('.picker-item');
+    if (!item) return;
+    e.preventDefault();
+    const user = STUDENTS.find((u) => u.id === item.dataset.id);
+    if (user && selected.length < max) {
+      selected.push(user);
+      input.value = '';
+      dropdown.hidden = true;
+      renderChips();
+    }
+  });
+
+  chipsEl.addEventListener('click', (e) => {
+    const x = e.target.closest('.chip-x');
+    if (x) {
+      selected.splice(Number(x.dataset.index), 1);
+      renderChips();
+    }
+  });
+
+  return {
+    getSelected: () => [...selected],
+    reset() {
+      selected = [];
+      input.value = '';
+      dropdown.hidden = true;
+      renderChips();
+    },
+  };
+}
+
+// =====================================================
+// 팀 추가 마법사 (5단계)
+// =====================================================
+const T_STEPS = ['기본 사항', '소유자', '구성원', '설정', '마침'];
+let tCurrentStep = 1;
+
+const ownerPicker = setupPeoplePicker('ownerPicker', {
+  hintEl: 'ownerHint',
+  onChange: () => updateTNextState(),
+});
+
+const memberPicker = setupPeoplePicker('memberPicker', {
+  max: 20,
+  limitEl: 'memberLimit',
+  onChange: () => updateTNextState(),
+});
+
+function renderTStepper() {
+  document.getElementById('tStepper').innerHTML = T_STEPS.map((label, i) => {
+    const n = i + 1;
+    const state = n < tCurrentStep ? 'done' : n === tCurrentStep ? 'current' : '';
+    const check =
+      n < tCurrentStep
+        ? '<svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="#fff" stroke-width="1.8"><polyline points="2.5,6.5 5,9 9.5,3.5"/></svg>'
+        : '';
+    return `
+    <div class="step-item ${state}">
+      <span class="step-circle">${check}</span>
+      <span class="step-label">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+// 마법사 모드: 'team'(팀 추가) | 'group'(Microsoft 365 그룹 추가)
+let tMode = 'team';
+
+const T_MODE_TEXT = {
+  team: {
+    crumb: '팀 추가',
+    step1Desc:
+      '팀은 Microsoft Teams 파일에서 채팅하고 공동 작업할 수 있는 장소를 제공합니다. 팀의 모든 사용자에게 연락하기 위한 전자 메일 주소와 정보를 게시하기 위한 SharePoint 사이트가 포함되어 있습니다. 시작하려면 이 새 팀에 대한 몇 가지 기본 정보를 입력하세요.<br><a href="#" class="inline-link">Microsoft Teams에 대해 자세히 알아보기</a>',
+    nameLabel: '팀 이름 <span class="req">*</span>',
+    namePlaceholder: '예: Contoso 배송',
+    descLabel: '이 팀 설명',
+    descPlaceholder: '새 팀에 관한 설명을 입력하세요.',
+    emailLabel: '팀 전자 메일 주소 <span class="req">*</span>',
+    emailHint: '팀 전자 메일 주소를 입력합니다.',
+    finishTitle: '팀 추가 검토 및 완료',
+    finishBtn: '팀 추가',
+    cancelMsg: '팀에 대해 입력한 모든 정보가 손실됩니다.',
+    type: '팀',
+  },
+  group: {
+    crumb: 'Microsoft 365 그룹 추가',
+    step1Desc:
+      'Microsoft 365 그룹은 사람들이 공동 작업을 하는 데 도움이 되며, 그룹의 모든 사용자에게 연락하기 위한 전자 메일 주소와 정보를 게시하기 위한 SharePoint 사이트가 포함됩니다. 시작하려면 만들려는 그룹에 관한 몇 가지 기본 정보를 입력하세요.',
+    nameLabel: '이름 <span class="req">*</span>',
+    namePlaceholder: '새 그룹',
+    descLabel: '설명',
+    descPlaceholder: '새 그룹에 관한 설명을 입력하세요.',
+    emailLabel: '그룹 전자 메일 주소 <span class="req">*</span>',
+    emailHint: '그룹 전자 메일 주소를 입력합니다.',
+    finishTitle: 'Microsoft 365 그룹 추가 검토 및 완료',
+    finishBtn: '그룹 추가',
+    cancelMsg: '그룹에 대해 입력한 모든 정보가 손실됩니다.',
+    type: 'Microsoft 365 그룹',
+  },
+};
+
+function updateTNextState() {
+  const next = document.getElementById('tNext');
+  if (tCurrentStep === 1) {
+    next.disabled = !document.getElementById('tTeamName').value.trim();
+  } else if (tCurrentStep === 2) {
+    next.disabled = ownerPicker.getSelected().length === 0;
+  } else if (tCurrentStep === 4) {
+    const empty = !document.getElementById('tTeamEmail').value.trim();
+    next.disabled = empty;
+    document.getElementById('tEmailRow').classList.toggle('invalid', empty);
+    document.getElementById('tEmailHint').hidden = !empty;
+  } else {
+    next.disabled = false;
+  }
+}
+
+function showTStep(n) {
+  tCurrentStep = n;
+  document.querySelectorAll('.t-step').forEach((s) => {
+    s.hidden = Number(s.dataset.step) !== n;
+  });
+  document.getElementById('tBack').hidden = n === 1;
+  document.getElementById('tNext').textContent = n === 5 ? T_MODE_TEXT[tMode].finishBtn : '다음';
+  renderTStepper();
+  updateTNextState();
+  window.scrollTo(0, 0);
+}
+
+function fillTeamReview() {
+  document.getElementById('tRevName').textContent =
+    '이름: ' + document.getElementById('tTeamName').value.trim();
+  document.getElementById('tRevDesc').textContent =
+    '설명: ' + document.getElementById('tTeamDesc').value.trim();
+  document.getElementById('tRevOwners').textContent = ownerPicker
+    .getSelected()
+    .map((u) => u.display)
+    .join(', ');
+  const members = memberPicker.getSelected();
+  document.getElementById('tRevMembers').textContent = members.length
+    ? members.map((u) => u.display).join(', ')
+    : '없음';
+  document.getElementById('tRevEmail').textContent =
+    '전자 메일: ' + document.getElementById('tTeamEmail').value.trim() + '@' + DOMAIN;
+  document.getElementById('tRevPrivacy').textContent =
+    '공개 범위: ' + document.getElementById('tPrivacySelect').value;
+}
+
+function applyTModeTexts() {
+  const t = T_MODE_TEXT[tMode];
+  document.getElementById('tCrumbCurrent').textContent = t.crumb;
+  document.getElementById('tStep1Desc').innerHTML = t.step1Desc;
+  document.getElementById('tNameLabel').innerHTML = t.nameLabel;
+  document.getElementById('tTeamName').placeholder = t.namePlaceholder;
+  document.getElementById('tDescLabel').textContent = t.descLabel;
+  document.getElementById('tTeamDesc').placeholder = t.descPlaceholder;
+  document.getElementById('tEmailLabel').innerHTML = t.emailLabel;
+  document.getElementById('tEmailHint').textContent = t.emailHint;
+  document.getElementById('tFinishTitle').textContent = t.finishTitle;
+}
+
+function resetTeamWizard() {
+  document.getElementById('tTeamName').value = '';
+  document.getElementById('tTeamDesc').value = '';
+  document.getElementById('tTeamEmail').value = '';
+  document.getElementById('tPrivacySelect').selectedIndex = 0;
+  ownerPicker.reset();
+  memberPicker.reset();
+  showTStep(1);
+}
+
+function openAddTeam(mode = 'team') {
+  tMode = mode;
+  applyTModeTexts();
+  resetTeamWizard();
+  showPage('addteam');
+  // 사이드바에는 '활성 팀 및 그룹'을 활성으로 유지
+  const teamsLink = document.querySelector('.sidebar [data-page="teams"]');
+  if (teamsLink) {
+    teamsLink.classList.add('active');
+    teamsLink.closest('.nav-item').classList.add('expanded');
+  }
+}
+
+function finishTeamWizard() {
+  const owners = ownerPicker.getSelected();
+
+  TEAMS.push({
+    name: document.getElementById('tTeamName').value.trim(),
+    desc: document.getElementById('tTeamDesc').value.trim(),
+    email: document.getElementById('tTeamEmail').value.trim() + '@' + DOMAIN,
+    type: T_MODE_TEXT[tMode].type,
+    owners: owners.map((u) => u.display).join(', '),
+    members: memberPicker.getSelected().length,
+  });
+  renderTeams();
+  document.getElementById('teamSearch').value = '';
+  showPage('teams');
+}
+
+// [팀 추가]/[Microsoft 365 그룹 추가] 버튼 연결
+document.querySelectorAll('button').forEach((btn) => {
+  const label = btn.textContent.trim();
+  if (!btn.classList.contains('toolbar-btn')) return;
+  if (label === '팀 추가') btn.addEventListener('click', () => openAddTeam('team'));
+  if (label === 'Microsoft 365 그룹 추가') btn.addEventListener('click', () => openAddTeam('group'));
+});
+
+document.getElementById('tTeamName').addEventListener('input', updateTNextState);
+document.getElementById('tTeamEmail').addEventListener('input', updateTNextState);
+
+document.getElementById('tBack').addEventListener('click', () => showTStep(tCurrentStep - 1));
+
+document.getElementById('tNext').addEventListener('click', () => {
+  if (tCurrentStep < 5) {
+    if (tCurrentStep === 4) fillTeamReview();
+    showTStep(tCurrentStep + 1);
+  } else {
+    finishTeamWizard();
+  }
+});
+
+// [취소] → 확인 팝업 (팀/그룹 문구)
+document.getElementById('tCancel').addEventListener('click', () => {
+  document.getElementById('confirmMsg').textContent = T_MODE_TEXT[tMode].cancelMsg;
+  confirmYesAction = () => {
+    resetTeamWizard();
+    showPage('teams');
+  };
+  cancelConfirm.hidden = false;
+});
+
+// 검토 화면 [편집] 링크 → 해당 단계로 이동
+document.querySelectorAll('.t-edit-link').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    showTStep(Number(link.dataset.goto));
+  });
+});
+
+// =====================================================
+// 팀 이름 및 설명 편집 패널
+// =====================================================
+const editTeamPanel = document.getElementById('editTeamPanel');
+let editTeamTarget = null;
+
+document.getElementById('editNameBtn').addEventListener('click', () => {
+  const checked = [...document.querySelectorAll('.team-check:checked')];
+  if (checked.length !== 1) return; // 정확히 하나 선택된 경우에만
+  editTeamTarget = teamsRendered[Number(checked[0].closest('tr').dataset.index)];
+  document.getElementById('editTeamName').value = editTeamTarget.name;
+  document.getElementById('editTeamDesc').value = editTeamTarget.desc || '';
+  document.getElementById('editTeamSave').disabled = true;
+  editTeamPanel.hidden = false;
+});
+
+['editTeamName', 'editTeamDesc'].forEach((id) => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById('editTeamSave').disabled =
+      !document.getElementById('editTeamName').value.trim();
+  });
+});
+
+document.getElementById('editTeamSave').addEventListener('click', () => {
+  if (editTeamTarget) {
+    editTeamTarget.name = document.getElementById('editTeamName').value.trim();
+    editTeamTarget.desc = document.getElementById('editTeamDesc').value.trim();
+    renderTeams(teamsRendered);
+  }
+  editTeamPanel.hidden = true;
+});
+
+document.getElementById('editTeamX').addEventListener('click', () => {
+  editTeamPanel.hidden = true;
+});
+
+// =====================================================
+// 활성 팀 및 그룹: 탭 전환 (Teams / 메일 그룹 / 보안 그룹)
+// =====================================================
+document.querySelectorAll('.team-tab').forEach((tab) => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.team-tab').forEach((t) => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('#page-teams .tab-panel').forEach((panel) => {
+      panel.hidden = panel.id !== tab.dataset.tab;
+    });
+  });
+});
+
+// =====================================================
+// 활성 사용자: ⋯ 드롭다운 메뉴
+// =====================================================
+[
+  ['moreBtnDefault', 'moreMenuDefault'],
+  ['moreBtnSelected', 'moreMenuSelected'],
+].forEach(([btnId, menuId]) => {
+  document.getElementById(btnId).addEventListener('click', (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById(menuId);
+    const wasHidden = menu.hidden;
+    document.querySelectorAll('.more-menu').forEach((m) => (m.hidden = true));
+    menu.hidden = !wasHidden;
+  });
+});
+
+// 메뉴 바깥 클릭 시 닫기
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.more-wrap')) {
+    document.querySelectorAll('.more-menu').forEach((m) => (m.hidden = true));
+  }
+});
+
+// 선택 개수 옆 ✕ → 전체 선택 해제
+document.getElementById('selClear').addEventListener('click', () => {
+  document.querySelectorAll('.row-check').forEach((cb) => (cb.checked = false));
+  updateSelectionUI();
+});
+
+// =====================================================
+// 그룹 관리 패널
+// =====================================================
+const groupPanel = document.getElementById('groupPanel');
+let gmSelectedEmail = null; // 그룹 1개만 선택 가능
+let gmSavedEmail = null; // 방금 저장한 그룹 (체크는 풀리고 행 강조만 유지)
+
+// 이름에서 아바타 이니셜 추출 (영문 시작이면 단어 첫 글자 최대 2개, 아니면 사람 아이콘)
+function gmAvatarContent(name) {
+  if (/^[A-Za-z]/.test(name)) {
+    const initials = name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('');
+    return initials;
+  }
+  return `<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4">
+    <circle cx="10" cy="7" r="3.2"/><path d="M4 17c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"/>
+  </svg>`;
+}
+
+function renderGmList() {
+  const q = document.getElementById('gmSearch').value.trim().toLowerCase();
+  document.getElementById('gmSearchClear').hidden = !q;
+  const list = TEAMS.filter(
+    (t) => !q || t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q)
+  );
+
+  document.getElementById('gmList').innerHTML = list.length
+    ? list
+        .map(
+          (t) => `
+    <label class="gm-item${gmSelectedEmail === t.email || gmSavedEmail === t.email ? ' selected' : ''}">
+      <input type="checkbox" class="gm-check" data-email="${t.email}" ${gmSelectedEmail === t.email ? 'checked' : ''}>
+      <span class="gm-avatar" style="background:${avatarColor(t.name)}">${gmAvatarContent(t.name)}</span>
+      <span>
+        <div class="gm-name">${t.name}</div>
+        <div class="gm-email">${t.email}</div>
+      </span>
+    </label>`
+        )
+        .join('')
+    : '<div class="gm-empty">일치하는 그룹이 없습니다.</div>';
+}
+
+// 그룹 1개만 선택 가능 (다른 항목 체크 시 기존 선택 해제)
+document.getElementById('gmList').addEventListener('change', (e) => {
+  if (!e.target.classList.contains('gm-check')) return;
+  gmSelectedEmail = e.target.checked ? e.target.dataset.email : null;
+  // 새로 편집을 시작하면 저장 완료 표시는 접는다
+  gmSavedEmail = null;
+  document.getElementById('gmSuccess').hidden = true;
+  document.getElementById('gmInfoBanner').hidden = false;
+  renderGmList();
+  document.getElementById('gmSave').disabled = !gmSelectedEmail;
+});
+
+document.getElementById('gmSearch').addEventListener('input', renderGmList);
+document.getElementById('gmSearchClear').addEventListener('click', () => {
+  document.getElementById('gmSearch').value = '';
+  renderGmList();
+});
+
+// [그룹 관리] 메뉴 → 패널 열기
+document.getElementById('groupManageBtn').addEventListener('click', () => {
+  document.querySelectorAll('.more-menu').forEach((m) => (m.hidden = true));
+  document.getElementById('gmCount').textContent =
+    document.querySelectorAll('.row-check:checked').length;
+
+  gmSelectedEmail = null;
+  gmSavedEmail = null;
+  document.getElementById('gmSearch').value = '';
+  renderGmList();
+  document.getElementById('gmMain').hidden = false;
+  document.getElementById('gmLoading').hidden = true;
+  document.getElementById('gmSuccess').hidden = true;
+  document.getElementById('gmInfoBanner').hidden = false;
+  document.getElementById('gmSave').disabled = true;
+  groupPanel.hidden = false;
+});
+
+// [변경 내용 저장] → 저장 중 스피너(약 1초) → 초록 "변경했습니다." 배너와 함께 목록 복귀
+document.getElementById('gmSave').addEventListener('click', () => {
+  document.getElementById('gmMain').hidden = true;
+  document.getElementById('gmLoading').hidden = false;
+  document.getElementById('gmSave').disabled = true;
+
+  setTimeout(() => {
+    // 체크는 풀리고 방금 저장한 그룹 행만 강조 유지
+    gmSavedEmail = gmSelectedEmail;
+    gmSelectedEmail = null;
+    document.getElementById('gmSearch').value = '';
+    renderGmList();
+
+    document.getElementById('gmLoading').hidden = true;
+    document.getElementById('gmMain').hidden = false;
+    document.getElementById('gmSuccess').hidden = false;
+    document.getElementById('gmInfoBanner').hidden = true;
+    document.getElementById('gmSave').disabled = true;
+  }, 1200);
+});
+
+document.getElementById('gmX').addEventListener('click', () => {
+  groupPanel.hidden = true;
+});
+
+// =====================================================
+// 제품 라이선스 관리 패널
+// =====================================================
+const licensePanel = document.getElementById('licensePanel');
+let plTargets = []; // 라이선스를 변경할 사용자들
+
+// 이 패널 전용 라이선스 목록 (실제 화면 순서)
+const PL_LICENSES = [
+  { name: '학생용 Microsoft 365 A3 사용 혜택', avail: '1204/2400개 라이선스 사용 가능' },
+  { name: 'Microsoft Power Automate Free', avail: '9400/10000개 라이선스 사용 가능' },
+  { name: 'Microsoft Copilot Studio 바이럴 평가판', avail: '9961/10000개 라이선스 사용 가능' },
+  { name: '교직원용 Microsoft 365 A3', avail: '3/60개 라이선스 사용 가능' },
+  { name: 'Microsoft Power Apps for Developer', avail: '9982/10000개 라이선스 사용 가능' },
+];
+
+// 라이선스별 포함 앱
+const PL_APPS = {
+  '학생용 Microsoft 365 A3 사용 혜택': [
+    'Exchange Online(계획 2)', 'Microsoft Teams', 'SharePoint(플랜 2)',
+    'OneDrive for Business(플랜 2)', 'Microsoft Forms(플랜 2)', 'Office for the Web(교육용)',
+    'Microsoft Loop', 'Microsoft Planner', 'Whiteboard(플랜 2)',
+  ],
+  'Microsoft Power Automate Free': ['Common Data Service', 'Microsoft Power Automate Free'],
+  'Microsoft Copilot Studio 바이럴 평가판': [
+    'CCI Bots용 Common Data Service', 'CCI 봇용 Flow',
+    'Dynamics 365 AI for Customer Service Virtual Agents 바이럴',
+  ],
+  '교직원용 Microsoft 365 A3': [
+    'Exchange Online(계획 2)', 'Microsoft Teams', 'SharePoint(플랜 2)',
+    'Microsoft Intune Plan 1 for Education', 'Microsoft Forms(플랜 2)',
+  ],
+  'Microsoft Power Apps for Developer': [
+    'Common Data Service for Apps 개발자', 'Power Apps for Developer', 'Power Automate for Developer',
+  ],
+};
+
+// 라이선스 목록 렌더링 (1회)
+document.getElementById('plLicList').innerHTML = PL_LICENSES.map(
+  (lic) => `
+  <label class="license-item">
+    <input type="checkbox" class="pl-lic-check" data-name="${lic.name}">
+    <span>
+      <div class="license-name">${lic.name}</div>
+      <div class="license-avail">${lic.avail}</div>
+    </span>
+  </label>`
+).join('');
+
+function plSelectedLics() {
+  return [...document.querySelectorAll('.pl-lic-check:checked')].map((cb) => cb.dataset.name);
+}
+
+function plMode() {
+  return document.querySelector('input[name="plMode"]:checked')?.value || null;
+}
+
+// 앱 표시 드롭다운 옵션 재구성 (모든 라이선스 + 선택된 라이선스명)
+function rebuildPlAppFilter() {
+  const filter = document.getElementById('plAppFilter');
+  const prev = filter.value;
+  const options = ['모든 라이선스', ...plSelectedLics()];
+  filter.innerHTML = options.map((o) => `<option>${o}</option>`).join('');
+  if (options.includes(prev)) filter.value = prev;
+}
+
+function renderPlApps() {
+  const filter = document.getElementById('plAppFilter').value;
+  const items = plSelectedLics().flatMap((name) =>
+    (PL_APPS[name] || []).map((app) => ({ app, lic: name }))
+  ).filter((it) => filter === '모든 라이선스' || it.lic === filter);
+
+  document.getElementById('plAppList').innerHTML = items.length
+    ? items
+        .map(
+          (it) => `
+    <label class="app-item">
+      <input type="checkbox" class="pl-app-check" checked>
+      <span>
+        <div class="app-name">${it.app}</div>
+        <div class="app-sub">${it.lic}</div>
+      </span>
+    </label>`
+        )
+        .join('')
+    : '<div class="gm-empty">표시할 앱이 없습니다. 라이선스를 먼저 선택하세요.</div>';
+  document.getElementById('plAppsAll').checked = true;
+}
+
+// 라디오/라이선스 선택에 따른 화면 상태 갱신
+function updatePlState() {
+  const mode = plMode();
+  const sel = plSelectedLics();
+  const needLics = mode === 'replace' || mode === 'add';
+
+  document.getElementById('plLicArea').hidden = !needLics;
+  document.getElementById('plLicCount').textContent = sel.length;
+  document.getElementById('plAppCount').textContent = sel.reduce(
+    (n, name) => n + (PL_APPS[name] || []).length, 0
+  );
+  document.getElementById('plSave').disabled = !mode || (needLics && sel.length === 0);
+}
+
+document.querySelectorAll('input[name="plMode"]').forEach((radio) => {
+  radio.addEventListener('change', updatePlState);
+});
+
+document.getElementById('plLicList').addEventListener('change', (e) => {
+  if (!e.target.classList.contains('pl-lic-check')) return;
+  rebuildPlAppFilter();
+  renderPlApps();
+  updatePlState();
+});
+
+// 라이선스/앱 섹션 접기·펼치기
+[
+  ['plLicHeader', 'plLicList'],
+  ['plAppsHeader', 'plAppsSection'],
+].forEach(([headerId, sectionId]) => {
+  document.getElementById(headerId).addEventListener('click', () => {
+    const section = document.getElementById(sectionId);
+    section.hidden = !section.hidden;
+    document.getElementById(headerId).querySelector('.collapse-chevron').classList.toggle('up', !section.hidden);
+  });
+});
+
+document.getElementById('plAppFilter').addEventListener('change', renderPlApps);
+
+document.getElementById('plAppsAll').addEventListener('change', (e) => {
+  document.querySelectorAll('.pl-app-check').forEach((cb) => (cb.checked = e.target.checked));
+});
+
+// [제품 라이선스 관리] 버튼 → 패널 열기
+function openLicensePanel() {
+  plTargets = [...document.querySelectorAll('.row-check:checked')].map(
+    (cb) => lastRendered[Number(cb.closest('tr').dataset.index)]
+  );
+  if (!plTargets.length) return;
+
+  document.getElementById('plCount').textContent = plTargets.length;
+  document.querySelectorAll('input[name="plMode"]').forEach((r) => (r.checked = false));
+  document.querySelectorAll('.pl-lic-check').forEach((cb) => (cb.checked = false));
+  document.getElementById('plLicArea').hidden = true;
+  document.getElementById('plLicList').hidden = false;
+  document.getElementById('plLicHeader').querySelector('.collapse-chevron').classList.add('up');
+  document.getElementById('plAppsSection').hidden = true;
+  document.getElementById('plAppsHeader').querySelector('.collapse-chevron').classList.remove('up');
+  rebuildPlAppFilter();
+  renderPlApps();
+  updatePlState();
+
+  document.getElementById('plMain').hidden = false;
+  document.getElementById('plLoading').hidden = true;
+  document.getElementById('plDone').hidden = true;
+  document.getElementById('plFooter').hidden = false;
+  licensePanel.hidden = false;
+}
+
+document.querySelectorAll('#toolbarSelected button').forEach((btn) => {
+  if (btn.textContent.trim() === '제품 라이선스 관리') {
+    btn.addEventListener('click', openLicensePanel);
+  }
+});
+
+// [변경 내용 저장] → 스피너 → 할당 결과 화면
+document.getElementById('plSave').addEventListener('click', () => {
+  const mode = plMode();
+  const sel = plSelectedLics();
+
+  document.getElementById('plMain').hidden = true;
+  document.getElementById('plLoading').hidden = false;
+  document.getElementById('plSave').disabled = true;
+
+  setTimeout(() => {
+    // 실제 라이선스 반영
+    plTargets.forEach((u) => {
+      if (mode === 'removeAll') {
+        u.license = '-';
+      } else if (mode === 'replace') {
+        u.license = sel.join(' , ');
+      } else {
+        const existing = u.license === '-' ? [] : u.license.split(' , ');
+        u.license = [...new Set([...existing, ...sel])].join(' , ');
+      }
+    });
+    renderUsers(STUDENTS);
+
+    // 완료 화면
+    document.getElementById('plDoneSub').textContent =
+      `사용자 ${plTargets.length}/${plTargets.length}명의 라이선스를 할당했습니다.`;
+    document.getElementById('plDoneRows').innerHTML = plTargets
+      .map(
+        (u) => `<tr><td>${u.display}</td><td>${
+          u.license === '-' ? '할당된 라이선스 없음' : u.license.split(' , ').join(', ')
+        }</td></tr>`
+      )
+      .join('');
+
+    document.getElementById('plLoading').hidden = true;
+    document.getElementById('plDone').hidden = false;
+    document.getElementById('plFooter').hidden = true;
+  }, 1200);
+});
+
+// [다운로드] → 할당 결과 CSV
+document.getElementById('plDownload').addEventListener('click', (e) => {
+  e.preventDefault();
+  const rows = plTargets.map((u) => `${u.display},"${u.license === '-' ? '' : u.license}"`);
+  downloadCsv('할당된_라이선스.csv', '사용자 이름,라이선스\n' + rows.join('\n') + '\n');
+});
+
+document.getElementById('plX').addEventListener('click', () => {
+  licensePanel.hidden = true;
 });

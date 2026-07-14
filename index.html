@@ -220,7 +220,7 @@
           </span>
         </button>
         <ul class="sub-list">
-          <li><a href="#">활성 팀 및 그룹</a></li>
+          <li><a href="#" data-page="teams">활성 팀 및 그룹</a></li>
           <li><a href="#">정책</a></li>
           <li><a href="#">삭제된 그룹</a></li>
           <li><a href="#">공유 사서함</a></li>
@@ -563,11 +563,34 @@
         </svg>
         <span>보기 변경</span>
       </button>
-      <button class="toolbar-btn toolbar-more" title="추가 작업">
-        <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor">
-          <circle cx="4" cy="10" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="16" cy="10" r="1.3"/>
-        </svg>
-      </button>
+      <span class="more-wrap">
+        <button class="toolbar-btn toolbar-more" id="moreBtnDefault" title="추가 작업">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor">
+            <circle cx="4" cy="10" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="16" cy="10" r="1.3"/>
+          </svg>
+        </button>
+        <div class="more-menu" id="moreMenuDefault" hidden>
+          <button class="menu-item">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="3" y1="14" x2="9" y2="14"/>
+            </svg>
+            <span>보기 변경</span>
+          </button>
+          <button class="menu-item">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M16 8.5A6 6 0 0 0 5.2 6M4 11.5A6 6 0 0 0 14.8 14"/><polyline points="16,4.5 16,8.5 12,8.5"/><polyline points="4,15.5 4,11.5 8,11.5"/>
+            </svg>
+            <span>디렉터리 동기화</span>
+          </button>
+          <button class="menu-item">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3">
+              <circle cx="6.5" cy="6" r="2.2"/><circle cx="13.5" cy="6" r="2.2"/>
+              <path d="M2.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5M9.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5"/>
+            </svg>
+            <span>Teams 설정 상태</span>
+          </button>
+        </div>
+      </span>
     </div>
 
     <!-- 도구 모음 (사용자 선택 시) -->
@@ -624,17 +647,55 @@
         <span>사용자 내보내기</span>
       </button>
 
+      <span class="sel-count">
+        <span id="selCountNum">0개 선택됨</span>
+        <button class="sel-clear" id="selClear" title="선택 취소">
+          <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>
+      </span>
+
       <div class="users-search">
         <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5">
           <circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/>
         </svg>
         <input type="text" id="userSearchSelected" placeholder="활성 사용자 검색 목록">
       </div>
-      <button class="toolbar-btn toolbar-more" title="추가 작업">
-        <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor">
-          <circle cx="4" cy="10" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="16" cy="10" r="1.3"/>
-        </svg>
-      </button>
+      <span class="more-wrap">
+        <button class="toolbar-btn toolbar-more" id="moreBtnSelected" title="추가 작업">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor">
+            <circle cx="4" cy="10" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="16" cy="10" r="1.3"/>
+          </svg>
+        </button>
+        <div class="more-menu" id="moreMenuSelected" hidden>
+          <button class="menu-item">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="3" y1="14" x2="9" y2="14"/>
+            </svg>
+            <span>보기 변경</span>
+          </button>
+          <button class="menu-item" id="groupManageBtn">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3">
+              <circle cx="6.5" cy="6" r="2.2"/><circle cx="13.5" cy="6" r="2.2"/>
+              <path d="M2.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5M9.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5"/>
+            </svg>
+            <span>그룹 관리</span>
+          </button>
+          <button class="menu-item">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M13.5 3.5l3 3L7 16H4v-3l9.5-9.5z" stroke-linejoin="round"/>
+            </svg>
+            <span>연락처 정보 관리</span>
+          </button>
+          <button class="menu-item">
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+              <circle cx="10" cy="10" r="6.5"/><line x1="5.5" y1="5.5" x2="14.5" y2="14.5"/>
+            </svg>
+            <span>로그인 상태 편집</span>
+          </button>
+        </div>
+      </span>
     </div>
 
     <!-- 필터 -->
@@ -682,6 +743,460 @@
     </div>
 
   </div><!-- /page-users -->
+
+  <!-- ===== 활성 팀 및 그룹 페이지 ===== -->
+  <div class="page" id="page-teams" hidden>
+
+    <nav class="breadcrumb">
+      <a href="#" data-page="home">홈</a>
+      <span class="crumb-sep">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
+          <polyline points="4,2 8,6 4,10"/>
+        </svg>
+      </span>
+      <span class="crumb-current">활성 팀 및 그룹</span>
+    </nav>
+
+    <h1 class="page-title">활성 팀 및 그룹</h1>
+
+    <div class="team-cmd-row">
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M10 2.5a5 5 0 0 1 3 9c-.6.5-1 1-1 1.8v.2H8v-.2c0-.8-.4-1.3-1-1.8a5 5 0 0 1 3-9z"/><line x1="8" y1="16" x2="12" y2="16"/><line x1="8.5" y1="18" x2="11.5" y2="18"/>
+        </svg>
+        <span>그룹 정보</span>
+      </button>
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.3">
+          <circle cx="6.5" cy="6" r="2.2"/><circle cx="13.5" cy="6" r="2.2"/>
+          <path d="M2.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5M9.5 15c.6-2.2 2.1-3.5 4-3.5s3.4 1.3 4 3.5"/>
+        </svg>
+        <span>Teams 및 SharePoint 사용</span>
+      </button>
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M14.5 8a4 4 0 0 0-7.8-1A3.5 3.5 0 0 0 5 14h9a3 3 0 0 0 .5-6z"/>
+        </svg>
+        <span>파일을 저장할 위치</span>
+      </button>
+    </div>
+
+    <div class="team-tabs-row">
+      <div class="team-tabs">
+        <button class="team-tab active" data-tab="tabTeams">Teams 및 Microsoft 365 그룹</button>
+        <button class="team-tab" data-tab="tabMail">메일 그룹</button>
+        <button class="team-tab" data-tab="tabSecurity">보안 그룹</button>
+      </div>
+      <div class="users-search team-global-search">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/>
+        </svg>
+        <input type="text" id="teamSearch" placeholder="모든 팀 및 그룹...">
+      </div>
+    </div>
+
+    <!-- 탭 1: Teams 및 Microsoft 365 그룹 -->
+    <div class="tab-panel" id="tabTeams">
+    <div class="users-toolbar">
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/>
+        </svg>
+        <span>팀 추가</span>
+      </button>
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/>
+        </svg>
+        <span>Microsoft 365 그룹 추가</span>
+      </button>
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><line x1="4" y1="16.5" x2="16" y2="16.5"/>
+        </svg>
+        <span>내보내기</span>
+      </button>
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M16.5 10a6.5 6.5 0 1 1-2-4.7"/><polyline points="14.5,2.5 14.8,5.6 11.7,5.9"/>
+        </svg>
+        <span>새로 고침</span>
+      </button>
+      <button class="toolbar-btn" id="editNameBtn">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M13.5 3.5l3 3L7 16H4v-3l9.5-9.5z" stroke-linejoin="round"/>
+        </svg>
+        <span>이름 및 설명 편집</span>
+      </button>
+      <button class="toolbar-btn">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="3"/><path d="M13 10v1.5a2 2 0 0 0 4 0V10"/>
+        </svg>
+        <span>전자 메일 주소 편집</span>
+      </button>
+      <button class="toolbar-btn toolbar-more" title="추가 작업">
+        <svg viewBox="0 0 20 20" width="17" height="17" fill="currentColor">
+          <circle cx="4" cy="10" r="1.3"/><circle cx="10" cy="10" r="1.3"/><circle cx="16" cy="10" r="1.3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="users-table-wrap">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th class="col-check"><input type="checkbox" id="teamCheckAll"></th>
+            <th>
+              <span class="th-sort">이름
+                <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
+                  <line x1="6" y1="10" x2="6" y2="2"/><polyline points="3,5 6,2 9,5"/>
+                </svg>
+              </span>
+            </th>
+            <th>전자 메일</th>
+            <th>동기화 상태</th>
+            <th>팀 상태</th>
+          </tr>
+        </thead>
+        <tbody id="teamsTbody"></tbody>
+      </table>
+    </div>
+    </div><!-- /tabTeams -->
+
+    <!-- 탭 2: 메일 그룹 -->
+    <div class="tab-panel" id="tabMail" hidden>
+      <div class="users-toolbar">
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/>
+          </svg>
+          <span>메일 그룹 추가</span>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><line x1="4" y1="16.5" x2="16" y2="16.5"/>
+          </svg>
+          <span>내보내기</span>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M16.5 10a6.5 6.5 0 1 1-2-4.7"/><polyline points="14.5,2.5 14.8,5.6 11.7,5.9"/>
+          </svg>
+          <span>새로 고침</span>
+        </button>
+        <button class="toolbar-btn toolbar-more toolbar-right" title="보기 변경">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="3" y1="14" x2="9" y2="14"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="users-table-wrap">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th class="col-check"><input type="checkbox"></th>
+              <th>
+                <span class="th-sort">이름
+                  <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <line x1="6" y1="10" x2="6" y2="2"/><polyline points="3,5 6,2 9,5"/>
+                  </svg>
+                </span>
+              </th>
+              <th>전자 메일</th>
+              <th>동기화 상태</th>
+              <th>만든 날짜</th>
+              <th class="col-columns">
+                <button class="col-select-btn">
+                  <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <rect x="3" y="4" width="14" height="12" rx="1"/><line x1="8" y1="4" x2="8" y2="16"/><line x1="13" y1="4" x2="13" y2="16"/>
+                  </svg>
+                  <span>열 선택</span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="empty-state">
+        <p class="empty-title">이 페이지는 비어 있습니다.</p>
+        <p class="empty-sub">이 목록에 표시할 첫 번째 항목 추가</p>
+      </div>
+    </div><!-- /tabMail -->
+
+    <!-- 탭 3: 보안 그룹 -->
+    <div class="tab-panel" id="tabSecurity" hidden>
+      <div class="users-toolbar">
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/>
+          </svg>
+          <span>보안 그룹 추가</span>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="10" y1="4" x2="10" y2="16"/><line x1="4" y1="10" x2="16" y2="10"/>
+          </svg>
+          <span>메일 사용이 가능한 보안 그룹 추가</span>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><line x1="4" y1="16.5" x2="16" y2="16.5"/>
+          </svg>
+          <span>내보내기</span>
+        </button>
+        <button class="toolbar-btn">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M16.5 10a6.5 6.5 0 1 1-2-4.7"/><polyline points="14.5,2.5 14.8,5.6 11.7,5.9"/>
+          </svg>
+          <span>새로 고침</span>
+        </button>
+        <span class="toolbar-count toolbar-right">2개 항목</span>
+        <button class="toolbar-btn toolbar-more" title="보기 변경">
+          <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.4">
+            <line x1="3" y1="6" x2="17" y2="6"/><line x1="3" y1="10" x2="13" y2="10"/><line x1="3" y1="14" x2="9" y2="14"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="users-table-wrap">
+        <table class="users-table">
+          <thead>
+            <tr>
+              <th class="col-check"><input type="checkbox"></th>
+              <th>
+                <span class="th-sort">이름
+                  <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <line x1="6" y1="10" x2="6" y2="2"/><polyline points="3,5 6,2 9,5"/>
+                  </svg>
+                </span>
+              </th>
+              <th>전자 메일</th>
+              <th>동기화 상태</th>
+              <th>만든 날짜</th>
+              <th class="col-columns">
+                <button class="col-select-btn">
+                  <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+                    <rect x="3" y="4" width="14" height="12" rx="1"/><line x1="8" y1="4" x2="8" y2="16"/><line x1="13" y1="4" x2="13" y2="16"/>
+                  </svg>
+                  <span>열 선택</span>
+                </button>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-check"><input type="checkbox"></td>
+              <td>
+                <div class="name-cell">
+                  <span class="display-name">Approvals App Admin team</span>
+                  <button class="row-more" title="추가 작업">
+                    <svg viewBox="0 0 20 20" width="15" height="15" fill="currentColor">
+                      <circle cx="10" cy="5" r="1.2"/><circle cx="10" cy="10" r="1.2"/><circle cx="10" cy="15" r="1.2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td></td>
+              <td>
+                <span class="sync-icon" title="클라우드">
+                  <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.3">
+                    <path d="M14.5 8a4 4 0 0 0-7.8-1A3.5 3.5 0 0 0 5 14h9a3 3 0 0 0 .5-6z"/>
+                  </svg>
+                </span>
+              </td>
+              <td>2026년 4월 30일 오후<br>12:51</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="col-check"><input type="checkbox"></td>
+              <td>
+                <div class="name-cell">
+                  <span class="display-name">student_lg_gram</span>
+                  <button class="row-more" title="추가 작업">
+                    <svg viewBox="0 0 20 20" width="15" height="15" fill="currentColor">
+                      <circle cx="10" cy="5" r="1.2"/><circle cx="10" cy="10" r="1.2"/><circle cx="10" cy="15" r="1.2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td></td>
+              <td>
+                <span class="sync-icon" title="클라우드">
+                  <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.3">
+                    <path d="M14.5 8a4 4 0 0 0-7.8-1A3.5 3.5 0 0 0 5 14h9a3 3 0 0 0 .5-6z"/>
+                  </svg>
+                </span>
+              </td>
+              <td>2026년 4월 9일 오전<br>8:40</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /tabSecurity -->
+  </div><!-- /page-teams -->
+
+  <!-- ===== 팀 추가 마법사 페이지 ===== -->
+  <div class="page" id="page-addteam" hidden>
+
+    <nav class="breadcrumb">
+      <a href="#" data-page="home">홈</a>
+      <span class="crumb-sep">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="4,2 8,6 4,10"/></svg>
+      </span>
+      <a href="#" data-page="teams">활성 팀 및 그룹</a>
+      <span class="crumb-sep">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="4,2 8,6 4,10"/></svg>
+      </span>
+      <span class="crumb-current" id="tCrumbCurrent">팀 추가</span>
+    </nav>
+
+    <div class="team-wizard">
+      <aside class="team-stepper" id="tStepper"></aside>
+
+      <div class="team-content">
+
+        <!-- 1단계: 기본 사항 -->
+        <section class="t-step" data-step="1">
+          <h2 class="wizard-title">기본 사항 설정</h2>
+          <p class="wizard-desc team-desc" id="tStep1Desc">
+            팀은 Microsoft Teams 파일에서 채팅하고 공동 작업할 수 있는 장소를 제공합니다. 팀의 모든 사용자에게 연락하기 위한 전자 메일
+            주소와 정보를 게시하기 위한 SharePoint 사이트가 포함되어 있습니다. 시작하려면 이 새 팀에 대한 몇 가지 기본 정보를 입력하세
+            요.<br>
+            <a href="#" class="inline-link">Microsoft Teams에 대해 자세히 알아보기</a>
+          </p>
+
+          <div class="form-field form-block">
+            <label id="tNameLabel">팀 이름 <span class="req">*</span></label>
+            <input type="text" class="text-input" id="tTeamName" placeholder="예: Contoso 배송">
+          </div>
+
+          <div class="form-field form-block">
+            <label id="tDescLabel">이 팀 설명</label>
+            <textarea class="text-input team-textarea" id="tTeamDesc" placeholder="새 팀에 관한 설명을 입력하세요."></textarea>
+          </div>
+        </section>
+
+        <!-- 2단계: 소유자 -->
+        <section class="t-step" data-step="2" hidden>
+          <h2 class="wizard-title">소유자 추가</h2>
+          <p class="wizard-desc team-desc">팀 소유자는 구성원을 추가 또는 삭제하고, 팀 세부 정보를 편집하고, 대화를 삭제할 수 있습니다.</p>
+
+          <div class="del-banner team-banner">
+            <span class="info-icon">&#9432;</span>
+            <span>
+              소유자가 한 명 이상 있어야 합니다. 둘을 추가하는 것이 좋습니다. 다른 사람이 없을 때 도움을 줄 수 있습니다. 모든 소유자에게 Teams 포함된
+              라이선스가 있어야 합니다. <a href="#" class="inline-link">Teams에 액세스할 수 있는 사용자에 대한 자세한 정보</a>
+            </span>
+          </div>
+
+          <div class="form-field form-block">
+            <label>소유자 <span class="req">*</span></label>
+            <div class="people-picker" id="ownerPicker">
+              <input type="text" class="text-input picker-input" placeholder="이름 또는 전자 메일 주소 입력(최소 두 명의 소유자 권장)">
+              <div class="picker-dropdown" hidden></div>
+              <div class="picker-chips"></div>
+              <div class="picker-hint" id="ownerHint">소유자를 입력하세요.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3단계: 구성원 -->
+        <section class="t-step" data-step="3" hidden>
+          <h2 class="wizard-title">구성원 추가</h2>
+          <p class="wizard-desc team-desc">
+            구성원은 채팅, 채널 및 파일을 포함하여 팀의 모든 항목에 액세스할 수 있습니다. 팀 구성원은 게스트를 팀에 초대할 수 있지만 팀
+            세부 정보는 편집할 수 없습니다.
+          </p>
+
+          <div class="form-field form-block">
+            <label>구성원</label>
+            <div class="people-picker" id="memberPicker">
+              <input type="text" class="text-input picker-input" placeholder="이름 또는 전자 메일 주소 입력">
+              <div class="picker-dropdown" hidden></div>
+              <div class="picker-chips"></div>
+              <div class="picker-limit" id="memberLimit" hidden>구성원은 최대 20명까지 추가할 수 있습니다.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4단계: 설정 -->
+        <section class="t-step" data-step="4" hidden>
+          <h2 class="wizard-title">설정 편집</h2>
+          <p class="wizard-desc team-desc">
+            이 전자 메일 주소를 사용하는 모든 팀 구성원에게 전자 메일을 보내고 개인 정보 설정을 선택하여 팀에 참가할 수 있는 사용자를 제
+            어하고 Teams 검색 결과에서 해당 콘텐츠를 볼 수 있습니다.
+          </p>
+
+          <div class="form-field form-block">
+            <label id="tEmailLabel">팀 전자 메일 주소 <span class="req">*</span></label>
+            <div class="email-input-row invalid" id="tEmailRow">
+              <input type="text" class="text-input" id="tTeamEmail">
+              <span class="email-domain">@schoolname.sen.hs.kr</span>
+            </div>
+            <div class="picker-hint" id="tEmailHint">팀 전자 메일 주소를 입력합니다.</div>
+          </div>
+
+          <div class="del-banner team-banner">
+            <span class="info-icon">&#9432;</span>
+            <span>
+              조직 외부의 사용자는 처음에 이 팀에 전자 메일을 보낼 수 없지만, 팀을 만든 후 이 설정 및 기타 설정을 변경할 수
+              있습니다.
+            </span>
+          </div>
+
+          <div class="form-field privacy-field">
+            <label>공개 범위</label>
+            <select class="text-input" id="tPrivacySelect">
+              <option>공개 – 사용자는 소유자의 승인 없이 참가할 수 있습니다. 검색 결과 및 참가할 수 있는 팀 목록에 표시됩니다.</option>
+              <option>비공개 - 사용자는 소유자가 추가한 경우에만 참가할 수 있습니다. 검색 결과에 표시되지 않습니다.</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- 5단계: 마침 -->
+        <section class="t-step" data-step="5" hidden>
+          <h2 class="wizard-title" id="tFinishTitle">팀 추가 검토 및 완료</h2>
+          <p class="wizard-desc team-desc">거의 완료되었습니다. 새 팀을 만들기 전에 모든 것이 올바른지 확인하세요.</p>
+
+          <div class="review-box">
+            <div class="review-group">
+              <h3>기본 사항</h3>
+              <p id="tRevName">이름: -</p>
+              <p id="tRevDesc">설명: -</p>
+              <a href="#" class="t-edit-link" data-goto="1">편집</a>
+            </div>
+            <div class="review-group">
+              <h3>소유자</h3>
+              <p id="tRevOwners">-</p>
+              <a href="#" class="t-edit-link" data-goto="2">편집</a>
+            </div>
+            <div class="review-group">
+              <h3>구성원</h3>
+              <p id="tRevMembers">-</p>
+              <a href="#" class="t-edit-link" data-goto="3">편집</a>
+            </div>
+            <div class="review-group">
+              <h3>설정</h3>
+              <p id="tRevEmail">전자 메일: -</p>
+              <p id="tRevPrivacy">공개 범위: -</p>
+              <a href="#" class="t-edit-link" data-goto="4">편집</a>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="team-footer">
+      <button class="btn" id="tBack" hidden>뒤로</button>
+      <button class="btn btn-primary" id="tNext" disabled>다음</button>
+      <button class="btn team-cancel" id="tCancel">취소</button>
+    </div>
+  </div><!-- /page-addteam -->
 
   </main>
 </div>
@@ -1129,7 +1644,7 @@
         </svg>
       </button>
     </div>
-    <p class="confirm-msg">사용자에 대해 입력한 모든 정보가 손실됩니다.</p>
+    <p class="confirm-msg" id="confirmMsg">사용자에 대해 입력한 모든 정보가 손실됩니다.</p>
     <div class="confirm-actions">
       <button class="btn btn-primary" id="confirmYes">예</button>
       <button class="btn" id="confirmNo">아니요</button>
@@ -1361,6 +1876,218 @@
       <button class="btn btn-primary" id="delDeleteBtn" hidden>사용자 삭제</button>
       <button class="btn" id="delCancelBtn">취소</button>
       <button class="btn" id="delCloseBtn" hidden>닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 팀 이름 및 설명 편집 패널 ===== -->
+<div class="reset-root" id="editTeamPanel" hidden>
+  <div class="reset-panel">
+    <div class="reset-header">
+      <h1>팀 이름 및 설명 편집</h1>
+      <button class="confirm-x" id="editTeamX" title="닫기">
+        <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="reset-body">
+      <div class="form-field form-block">
+        <label>이름 <span class="req">*</span></label>
+        <input type="text" class="text-input" id="editTeamName">
+      </div>
+      <div class="form-field form-block">
+        <label>설명</label>
+        <textarea class="text-input edit-team-textarea" id="editTeamDesc"></textarea>
+      </div>
+    </div>
+
+    <div class="reset-footer">
+      <button class="btn" id="editTeamSave" disabled>변경 내용 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 그룹 관리 패널 ===== -->
+<div class="reset-root" id="groupPanel" hidden>
+  <div class="delete-panel group-panel">
+    <div class="delete-topbar">
+      <span class="topbar-spacer"></span>
+      <button class="confirm-x" id="gmX" title="닫기">
+        <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="delete-body">
+      <h1 class="delete-title">그룹 관리</h1>
+      <p class="gm-selcount">
+        <b>사용자 <span id="gmCount">0</span>명 선택됨</b>
+        <span class="info-icon">&#9432;</span>
+      </p>
+
+      <!-- 그룹 선택 화면 -->
+      <div id="gmMain">
+        <div class="gm-success" id="gmSuccess" hidden>
+          <span class="status-icon">
+            <svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="7.3" fill="none" stroke="#107c10" stroke-width="1.4"/><polyline points="4.8,8.3 7,10.4 11.2,5.8" fill="none" stroke="#107c10" stroke-width="1.5"/></svg>
+          </span>
+          <span>변경했습니다.</span>
+        </div>
+
+        <div class="del-banner" id="gmInfoBanner">
+          <span class="info-icon">&#9432;</span>
+          <span>그룹 1개만 선택할 수 있습니다.</span>
+        </div>
+
+        <h3 class="del-section-title">그룹 멤버십</h3>
+
+        <div class="del-search">
+          <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8.5" cy="8.5" r="5.5"/><line x1="13" y1="13" x2="18" y2="18"/>
+          </svg>
+          <input type="text" id="gmSearch" placeholder="그룹 이름 또는 전자 메일 주소로 검색">
+          <button class="mfa-search-clear" id="gmSearchClear" hidden>
+            <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+          </button>
+        </div>
+
+        <div class="gm-list" id="gmList"></div>
+      </div>
+
+      <!-- 저장 중 화면 -->
+      <div id="gmLoading" hidden>
+        <div class="gm-loading">
+          <div class="gm-spinner"></div>
+          <p>저장 중</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="delete-footer">
+      <button class="btn btn-primary" id="gmSave" disabled>변경 내용 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 제품 라이선스 관리 패널 ===== -->
+<div class="reset-root" id="licensePanel" hidden>
+  <div class="delete-panel group-panel">
+    <div class="delete-topbar">
+      <span class="topbar-spacer"></span>
+      <button class="confirm-x" id="plX" title="닫기">
+        <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="delete-body">
+      <h1 class="delete-title">제품 라이선스 관리</h1>
+
+      <!-- 설정 화면 -->
+      <div id="plMain">
+        <p class="gm-selcount">
+          <b>선택한 사용자 <span id="plCount">0</span>명</b>
+          <span class="info-icon">&#9432;</span>
+        </p>
+
+        <h3 class="pl-question">사용자의 라이선스를 어떻게 하시겠습니까?</h3>
+
+        <label class="radio-line pl-radio">
+          <input type="radio" name="plMode" value="replace">
+          <span>
+            <div class="pl-radio-title">바꾸기</div>
+            <div class="pl-radio-sub">기존 라이선스 할당을 해제하고 새로 할당합니다.</div>
+          </span>
+        </label>
+        <label class="radio-line pl-radio">
+          <input type="radio" name="plMode" value="add">
+          <span>
+            <div class="pl-radio-title">더 할당하기</div>
+            <div class="pl-radio-sub">기존 라이선스를 유지하고 더 할당합니다.</div>
+          </span>
+        </label>
+        <label class="radio-line pl-radio">
+          <input type="radio" name="plMode" value="removeAll">
+          <span>
+            <div class="pl-radio-title">모두 할당 해제</div>
+          </span>
+        </label>
+
+        <!-- 바꾸기/더 할당하기 선택 시 표시 -->
+        <div id="plLicArea" hidden>
+          <div class="section-divider"></div>
+
+          <button type="button" class="collapse-header" id="plLicHeader">
+            <span class="collapse-title">라이선스(<span id="plLicCount">0</span>)</span>
+            <svg class="collapse-chevron up" viewBox="0 0 12 12" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4">
+              <polyline points="2,4 6,8 10,4"/>
+            </svg>
+          </button>
+          <div class="license-list pl-lic-list" id="plLicList"></div>
+
+          <div class="section-divider"></div>
+
+          <button type="button" class="collapse-header" id="plAppsHeader">
+            <span class="collapse-title">앱(<span id="plAppCount">0</span>)</span>
+            <svg class="collapse-chevron" viewBox="0 0 12 12" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4">
+              <polyline points="2,4 6,8 10,4"/>
+            </svg>
+          </button>
+          <div id="plAppsSection" hidden>
+            <div class="form-field apps-filter">
+              <label>앱 표시:</label>
+              <select class="text-input" id="plAppFilter">
+                <option>모든 라이선스</option>
+              </select>
+            </div>
+            <label class="checkbox-line apps-all-line">
+              <input type="checkbox" id="plAppsAll" checked>
+              <span>모두 선택</span>
+            </label>
+            <div class="app-list" id="plAppList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 저장 중 -->
+      <div id="plLoading" hidden>
+        <div class="gm-loading">
+          <div class="gm-spinner"></div>
+          <p>저장 중</p>
+        </div>
+      </div>
+
+      <!-- 완료 화면 -->
+      <div id="plDone" hidden>
+        <p class="pl-done-sub" id="plDoneSub">사용자 3/3명의 라이선스를 할당했습니다.</p>
+
+        <a href="#" class="inline-link pl-download" id="plDownload">
+          <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M10 3v9M6.5 8.5L10 12l3.5-3.5"/><line x1="4" y1="16.5" x2="16" y2="16.5"/>
+          </svg>
+          다운로드
+        </a>
+
+        <h3 class="del-section-title">할당된 라이선스</h3>
+        <table class="bulk-done-table">
+          <thead>
+            <tr><th>사용자 이름</th><th>라이선스</th></tr>
+          </thead>
+          <tbody id="plDoneRows"></tbody>
+        </table>
+
+        <h3 class="del-section-title pl-next">다음 단계</h3>
+        <p><a href="#" class="inline-link">사용되지 않은 제품 라이선스가 있을 수 있습니다. [구독]에서 라이선스 수를 검토하세요.</a></p>
+      </div>
+    </div>
+
+    <div class="delete-footer" id="plFooter">
+      <button class="btn btn-primary" id="plSave" disabled>변경 내용 저장</button>
     </div>
   </div>
 </div>
