@@ -2150,13 +2150,14 @@
         </div>
 
         <div class="team-tabs ud-tabs">
-          <button class="team-tab active">계정</button>
-          <button class="team-tab">장치</button>
-          <button class="team-tab">라이선스 및 앱</button>
-          <button class="team-tab">메일</button>
-          <button class="team-tab">OneDrive</button>
+          <button class="team-tab active" data-udtab="account">계정</button>
+          <button class="team-tab" data-udtab="empty">장치</button>
+          <button class="team-tab" data-udtab="licenses">라이선스 및 앱</button>
+          <button class="team-tab" data-udtab="empty2">메일</button>
+          <button class="team-tab" data-udtab="onedrive">OneDrive</button>
         </div>
 
+        <div class="ud-tab-content" id="udTabAccount">
         <div class="ud-grid">
           <div class="ud-field">
             <div class="ud-label">사용자 이름 및 이메일</div>
@@ -2235,6 +2236,84 @@
             <div class="ud-label">다단계 인증</div>
             <a href="#" class="ud-link" id="udMfaLink">다단계 인증 관리</a>
           </div>
+        </div>
+        </div><!-- /udTabAccount -->
+
+        <!-- 라이선스 및 앱 탭 -->
+        <div class="ud-tab-content" id="udTabLicenses" hidden>
+          <div class="form-field loc-field">
+            <label>위치 선택 <span class="req">*</span></label>
+            <select class="text-input" id="udlLocation">
+              <option>한국</option>
+              <option>미국</option>
+              <option>일본</option>
+            </select>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <button type="button" class="collapse-header" id="udlHeader">
+            <span class="collapse-title">라이선스(<span id="udlCount">0</span>)</span>
+            <svg class="collapse-chevron up" viewBox="0 0 12 12" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4">
+              <polyline points="2,4 6,8 10,4"/>
+            </svg>
+          </button>
+          <div class="license-list pl-lic-list" id="udlList"></div>
+
+          <div class="section-divider"></div>
+
+          <button type="button" class="collapse-header" id="udlAppsHeader">
+            <span class="collapse-title">앱(<span id="udlAppCount">0</span>)</span>
+            <svg class="collapse-chevron" viewBox="0 0 12 12" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.4">
+              <polyline points="2,4 6,8 10,4"/>
+            </svg>
+          </button>
+          <div id="udlAppsSection" hidden>
+            <div class="app-list" id="udlAppList"></div>
+          </div>
+
+          <button class="btn btn-primary udl-save" id="udlSave" disabled>변경 내용 저장</button>
+        </div>
+
+        <!-- OneDrive 탭 -->
+        <div class="ud-tab-content" id="udTabOneDrive" hidden>
+          <div class="ud-grid">
+            <div class="ud-field">
+              <div class="ud-label">파일 액세스 권한 가져오기</div>
+              <div class="ud-value" id="udOdAccess">-</div>
+              <a href="#" class="ud-link">파일 링크 만들기</a>
+            </div>
+            <div class="ud-field">
+              <div class="ud-label">사용한 저장소</div>
+              <div class="ud-value">0% (0 MB of 5120 GB)</div>
+              <div class="od-bar"></div>
+              <a href="#" class="ud-link">편집</a>
+            </div>
+            <div class="ud-field">
+              <div class="ud-label">공유</div>
+              <div class="ud-value" id="udOdShare">-</div>
+              <a href="#" class="ud-link">외부 공유 관리</a>
+            </div>
+          </div>
+
+          <h3 class="ud-section">조직의 OneDrive 설정</h3>
+          <div class="ud-grid">
+            <div class="ud-field">
+              <div class="ud-label">데이터 보존 <span class="info-icon">&#9432;</span></div>
+              <div class="ud-value">3650일</div>
+              <a href="#" class="ud-link" id="udOdRetention">데이터 보존 관리</a>
+            </div>
+            <div class="ud-field">
+              <div class="ud-label">저장 공간</div>
+              <div class="ud-value">사용자당 5120GB</div>
+              <a href="#" class="ud-link" id="udOdStorage">기본 저장소 관리</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- 장치/메일 탭 (표시용) -->
+        <div class="ud-tab-content" id="udTabEmpty" hidden>
+          <p class="gm-empty">표시할 정보가 없습니다.</p>
         </div>
       </div>
 

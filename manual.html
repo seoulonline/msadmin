@@ -261,17 +261,20 @@ footer {
   <a href="#users-more" class="depth2">⋯ 추가 메뉴</a>
 
   <h2>사용자 관리</h2>
-  <a href="#add-user">3. 사용자 추가 (4단계)</a>
-  <a href="#add-multi">4. 여러 사용자 추가 (CSV)</a>
-  <a href="#delete-user">5. 사용자 삭제</a>
-  <a href="#reset-pw">6. 암호 초기화</a>
-  <a href="#license">7. 제품 라이선스 관리</a>
-  <a href="#group-manage">8. 그룹 관리</a>
-  <a href="#mfa">9. 다단계 인증(MFA)</a>
+  <a href="#user-detail">3. 사용자 세부 정보(계정 편집)</a>
+  <a href="#user-detail-account" class="depth2">계정 탭 · 이메일/별칭 관리</a>
+  <a href="#user-detail-tabs" class="depth2">라이선스 및 앱 · OneDrive 탭</a>
+  <a href="#add-user">4. 사용자 추가 (4단계)</a>
+  <a href="#add-multi">5. 여러 사용자 추가 (CSV)</a>
+  <a href="#delete-user">6. 사용자 삭제</a>
+  <a href="#reset-pw">7. 암호 초기화</a>
+  <a href="#license">8. 제품 라이선스 관리</a>
+  <a href="#group-manage">9. 그룹 관리</a>
+  <a href="#mfa">10. 다단계 인증(MFA)</a>
 
   <h2>Teams 및 그룹</h2>
-  <a href="#teams">10. 활성 팀 및 그룹</a>
-  <a href="#add-team">11. 팀 / 그룹 추가 (5단계)</a>
+  <a href="#teams">11. 활성 팀 및 그룹</a>
+  <a href="#add-team">12. 팀 / 그룹 추가 (5단계)</a>
   <a href="#edit-team" class="depth2">이름 및 설명 편집</a>
 
   <h2>부록</h2>
@@ -296,8 +299,10 @@ footer {
   <table>
     <tr><th>분류</th><th>기능</th></tr>
     <tr><td>사용자 관리</td><td>사용자 추가(단일/여러 명·CSV), 삭제, 암호 초기화, 라이선스 관리, 그룹 관리</td></tr>
+    <tr><td>계정 세부 정보</td><td>이름 클릭 → 계정 편집: 이메일/별칭, 로그아웃, 연락처 정보, 관리자 역할, 그룹 멤버십, 라이선스 및 앱, OneDrive</td></tr>
     <tr><td>보안</td><td>사용자 단위 다단계 인증(MFA) — Entra 관리 센터 화면</td></tr>
     <tr><td>Teams 및 그룹</td><td>활성 팀 및 그룹 목록(3개 탭), 팀 추가, Microsoft 365 그룹 추가, 이름·설명 편집</td></tr>
+    <tr><td>SharePoint</td><td>OneDrive 보존/저장 한도 설정 — SharePoint 관리 센터 화면</td></tr>
   </table>
   <div class="callout tip"><span class="ic">✔</span><span>
     모든 기능은 <b>실제로 동작</b>합니다. 추가한 계정은 목록에 나타나고, 삭제하면 사라지며,
@@ -345,10 +350,11 @@ footer {
     <li>필터 집합 알약(라이선스·로그인 상태·도메인·위치)은 표시용입니다.</li>
   </ul>
 
-  <h3>행 호버 동작</h3>
+  <h3>행 호버·클릭 동작</h3>
   <ul>
     <li>행에 마우스를 올리면 표시 이름에 밑줄이 생기고 <b>파란 열쇠 아이콘</b>이 나타납니다. 열쇠를 클릭하면 해당 계정의 <a href="#reset-pw">암호 초기화</a> 패널이 바로 열립니다.</li>
     <li>암호를 초기화한 계정은 호버하지 않아도 열쇠가 고정으로 표시됩니다.</li>
+    <li><b>학생 이름을 클릭</b>하면 계정을 조회·편집할 수 있는 <a href="#user-detail">사용자 세부 정보 패널</a>이 열립니다.</li>
   </ul>
 
   <h3>선택 시 도구 모음 전환</h3>
@@ -367,13 +373,57 @@ footer {
   <table>
     <tr><th>상태</th><th>메뉴 항목</th></tr>
     <tr><td>선택 없음</td><td><span class="menu-tag">보기 변경</span> <span class="menu-tag">디렉터리 동기화</span> <span class="menu-tag">Teams 설정 상태</span></td></tr>
-    <tr><td>선택 있음</td><td><span class="menu-tag">보기 변경</span> <span class="menu-tag">그룹 관리</span> <span class="menu-tag">연락처 정보 관리</span> <span class="menu-tag">로그인 상태 편집</span> — <b>그룹 관리</b>가 실제 동작(→ <a href="#group-manage">8장</a>)</td></tr>
+    <tr><td>선택 있음</td><td><span class="menu-tag">보기 변경</span> <span class="menu-tag">그룹 관리</span> <span class="menu-tag">연락처 정보 관리</span> <span class="menu-tag">로그인 상태 편집</span> — <b>그룹 관리</b>가 실제 동작(→ <a href="#group-manage">9장</a>)</td></tr>
   </table>
 </section>
 
-<!-- ================= 3. 사용자 추가 ================= -->
+<!-- ================= 3. 사용자 세부 정보 ================= -->
+<section id="user-detail">
+  <h2 class="sec"><span class="num">3</span>사용자 세부 정보 (계정 편집)</h2>
+  <div class="path"><b>사용자</b> <span class="arrow">›</span> <b>활성 사용자</b> <span class="arrow">›</span> <b>학생 이름 클릭</b></div>
+  <p>
+    학생 이름을 클릭하면 우측에 세부 정보 패널이 열립니다. 상단에는 파란 원형 아바타(영문 계정은
+    이름+성 이니셜, 한글 이름은 사람 아이콘)와 빠른 작업, 아래에 탭 5개가 있습니다.
+  </p>
+  <table>
+    <tr><th>구성</th><th>내용</th></tr>
+    <tr><td>빠른 작업</td><td><span class="menu-tag">암호 재설정</span>(→ <a href="#reset-pw">7장</a> 패널) · <span class="menu-tag">로그인 차단</span> · <span class="menu-tag">사용자 삭제</span>(→ <a href="#delete-user">6장</a> 확인 화면)</td></tr>
+    <tr><td>탭</td><td><b>계정</b>(기본) · 장치 · <b>라이선스 및 앱</b> · 메일 · <b>OneDrive</b> — 굵게 표시한 탭이 실제 동작</td></tr>
+  </table>
+
+  <h3 id="user-detail-account">계정 탭에서 할 수 있는 일</h3>
+  <table>
+    <tr><th>항목/링크</th><th>동작</th></tr>
+    <tr><td>사용자 이름 및 전자 메일 관리</td><td>기본 전자 메일을 연필 아이콘으로 <b>직접 편집</b>하고, 별칭을 추가합니다. 별칭 도메인은 <code>schoolname.sen.hs.kr</code> / <code>theothername.sen.hs.kr</code> 2종. 저장하면 목록에 즉시 반영됩니다.</td></tr>
+    <tr><td>모든 세션에서 로그아웃</td><td>클릭하면 링크가 실제 화면과 같은 영문 안내 문구(“We have initiated a sign-out…”)로 바뀝니다.</td></tr>
+    <tr><td>그룹 관리 → 멤버십 할당</td><td>그룹 검색·선택 후 <span class="btn-tag primary">추가</span>하면 그룹 관리 화면으로 돌아오며 ⓘ 1시간 안내 배너와 초록 <b>“저장됨”</b> 배너가 표시됩니다. 이미 속한 그룹은 할당 목록에서 제외됩니다.</td></tr>
+    <tr><td>연락처 정보 관리</td><td>이름·성·표시 이름*(미리 채움)과 직함·부서·사무실·전화·주소를 편집합니다. 저장하면 <b>표시 이름 변경이 목록에 반영</b>됩니다.</td></tr>
+    <tr><td>역할 관리</td><td>“사용자” 라디오면 역할 체크박스 10개가 비활성, <b>“관리 센터 액세스”를 선택하면 다중 선택이 활성화</b>됩니다. 저장하면 계정 탭 역할 값이 갱신됩니다.</td></tr>
+    <tr><td>Microsoft 365 활성화 보기</td><td>“○○○이 Microsoft 365에 로그인되어 있는 장치” 화면 — 표시 이름 기반 장치 8대 표(장치/OS/설치 날짜), 비활성화 ✕로 제거, [초대 전자 메일 보내기] 버튼</td></tr>
+    <tr><td>다단계 인증 관리</td><td><code>mfa.html</code>(Entra 관리 센터)을 새 탭으로 엽니다 (→ <a href="#mfa">10장</a>)</td></tr>
+  </table>
+
+  <h3 id="user-detail-tabs">라이선스 및 앱 · OneDrive 탭</h3>
+  <ul>
+    <li><b>라이선스 및 앱</b> — 위치 선택(한국)과 라이선스 5종이 표시되고, <b>학생이 현재 보유한 라이선스가 미리 체크</b>되어 있습니다.
+      체크를 바꾸면 <span class="btn-tag primary">변경 내용 저장</span>이 활성화되고, 저장 시 활성 사용자 목록의 라이선스 열에 즉시 반영됩니다.
+      앱(n) 헤더를 펼치면 선택된 라이선스의 포함 앱을 볼 수 있습니다.</li>
+    <li><b>OneDrive</b> — 파일 액세스 권한 가져오기, 사용한 저장소(0% of 5120 GB), 공유, 조직의 OneDrive 설정(데이터 보존 3650일 / 저장 공간 5120GB)이 표시됩니다.
+      <ul>
+        <li><span class="menu-tag">데이터 보존 관리</span> → <b>SharePoint 관리 센터</b>(<code>sharepoint.html</code>)가 새 탭으로 열리며 <b>보존</b> 패널(삭제된 사용자의 OneDrive 보존 일 수, 30~3650일)이 자동으로 열립니다.</li>
+        <li><span class="menu-tag">기본 저장소 관리</span> → 같은 페이지가 <b>저장 한도</b> 패널(기본 저장 한도 GB)과 함께 열립니다.</li>
+        <li>SharePoint 관리 센터에서도 설정 표의 OneDrive “보존”/“저장 한도” 행을 클릭해 패널을 열 수 있고, 사이드바 토글은 모두 닫힌 상태가 기본입니다.</li>
+      </ul>
+    </li>
+  </ul>
+  <div class="callout info"><span class="ic">ⓘ</span><span>
+    패널을 닫았다가 다시 열면 항상 <b>계정 탭</b>부터 시작합니다. 장치·메일 탭은 표시용 안내만 제공합니다.
+  </span></div>
+</section>
+
+<!-- ================= 4. 사용자 추가 ================= -->
 <section id="add-user">
-  <h2 class="sec"><span class="num">3</span>사용자 추가 (4단계 마법사)</h2>
+  <h2 class="sec"><span class="num">4</span>사용자 추가 (4단계 마법사)</h2>
   <div class="path"><b>사용자 추가</b> 버튼 <span class="arrow">|</span> 홈 도구 모음 · 사용자 관리 카드 · 활성 사용자 도구 모음 어디서든</div>
   <p>우측에서 큰 패널이 열리며, 좌측 진행 표시기(기본 사항 → 제품 라이선스 → 설정 → 마침)를 따라 진행합니다.</p>
 
@@ -413,7 +463,7 @@ footer {
 
 <!-- ================= 4. 여러 사용자 추가 ================= -->
 <section id="add-multi">
-  <h2 class="sec"><span class="num">4</span>여러 사용자 추가 (CSV 일괄 등록)</h2>
+  <h2 class="sec"><span class="num">5</span>여러 사용자 추가 (CSV 일괄 등록)</h2>
   <div class="path"><b>사용자</b> <span class="arrow">›</span> <b>활성 사용자</b> <span class="arrow">›</span> <span class="btn-tag">여러 사용자 추가</span></div>
   <p>3단계 마법사(기본 사항 → 제품 라이선스 → 마침)로 여러 명을 한 번에 추가합니다.</p>
 
@@ -446,7 +496,7 @@ footer {
 
 <!-- ================= 5. 사용자 삭제 ================= -->
 <section id="delete-user">
-  <h2 class="sec"><span class="num">5</span>사용자 삭제</h2>
+  <h2 class="sec"><span class="num">6</span>사용자 삭제</h2>
   <div class="path"><b>사용자</b> <span class="arrow">›</span> <b>활성 사용자</b> <span class="arrow">›</span> <span class="btn-tag">사용자 삭제</span></div>
 
   <h3>진입 방법 2가지</h3>
@@ -475,7 +525,7 @@ footer {
 
 <!-- ================= 6. 암호 초기화 ================= -->
 <section id="reset-pw">
-  <h2 class="sec"><span class="num">6</span>암호 초기화</h2>
+  <h2 class="sec"><span class="num">7</span>암호 초기화</h2>
   <div class="path">행 호버 시 <b>열쇠 아이콘</b> <span class="arrow">또는</span> 행 선택 후 <span class="btn-tag">암호 초기화</span></div>
   <ol class="steps">
     <li>우측 패널 상단에서 대상 계정을 확인합니다. 여러 명 선택 시 "○○○ 외 N명"으로 표시됩니다.</li>
@@ -491,7 +541,7 @@ footer {
 
 <!-- ================= 7. 라이선스 관리 ================= -->
 <section id="license">
-  <h2 class="sec"><span class="num">7</span>제품 라이선스 관리</h2>
+  <h2 class="sec"><span class="num">8</span>제품 라이선스 관리</h2>
   <div class="path">행 선택 <span class="arrow">›</span> <span class="btn-tag">제품 라이선스 관리</span></div>
   <ol class="steps">
     <li>"사용자의 라이선스를 어떻게 하시겠습니까?"에서 방식을 고릅니다.
@@ -517,7 +567,7 @@ footer {
 
 <!-- ================= 8. 그룹 관리 ================= -->
 <section id="group-manage">
-  <h2 class="sec"><span class="num">8</span>그룹 관리</h2>
+  <h2 class="sec"><span class="num">9</span>그룹 관리</h2>
   <div class="path">행 선택 <span class="arrow">›</span> ⋯ 메뉴 <span class="arrow">›</span> <span class="menu-tag">그룹 관리</span></div>
   <ol class="steps">
     <li>패널 상단에서 선택 인원("사용자 N명 선택됨")과 안내 배너 "그룹 1개만 선택할 수 있습니다."를 확인합니다.</li>
@@ -533,7 +583,7 @@ footer {
 
 <!-- ================= 9. MFA ================= -->
 <section id="mfa">
-  <h2 class="sec"><span class="num">9</span>다단계 인증(MFA)</h2>
+  <h2 class="sec"><span class="num">10</span>다단계 인증(MFA)</h2>
   <div class="path"><b>활성 사용자</b> 도구 모음 <span class="arrow">›</span> <span class="btn-tag">다단계 인증</span> <span class="arrow">›</span> <b>새 탭</b>으로 Entra 관리 센터 열림</div>
   <p>
     검정 헤더의 <b>Microsoft Entra 관리 센터</b> 화면("사용자 단위 다단계 인증")이 별도 탭으로 열립니다.
@@ -561,7 +611,7 @@ footer {
 
 <!-- ================= 10. 활성 팀 및 그룹 ================= -->
 <section id="teams">
-  <h2 class="sec"><span class="num">10</span>활성 팀 및 그룹</h2>
+  <h2 class="sec"><span class="num">11</span>활성 팀 및 그룹</h2>
   <div class="path"><b>Teams 및 그룹</b> <span class="arrow">›</span> <b>활성 팀 및 그룹</b></div>
   <p>상단에 그룹 정보 · Teams 및 SharePoint 사용 · 파일을 저장할 위치 명령이 있고, 탭 3개로 구성됩니다.</p>
   <table>
@@ -575,7 +625,7 @@ footer {
 
 <!-- ================= 11. 팀 추가 ================= -->
 <section id="add-team">
-  <h2 class="sec"><span class="num">11</span>팀 / Microsoft 365 그룹 추가 (5단계 마법사)</h2>
+  <h2 class="sec"><span class="num">12</span>팀 / Microsoft 365 그룹 추가 (5단계 마법사)</h2>
   <div class="path"><b>활성 팀 및 그룹</b> <span class="arrow">›</span> <span class="btn-tag">팀 추가</span> 또는 <span class="btn-tag">Microsoft 365 그룹 추가</span></div>
   <p>전체 페이지 마법사(기본 사항 → 소유자 → 구성원 → 설정 → 마침)입니다. 두 버튼의 흐름은 같고 문구만 팀/그룹으로 달라집니다.</p>
 
@@ -609,6 +659,7 @@ footer {
     <tr><td><code>index.html</code></td><td>관리 센터 본체 (홈·활성 사용자·팀 페이지·모든 패널/마법사)</td></tr>
     <tr><td><code>styles.css</code> / <code>script.js</code></td><td>관리 센터 스타일 / 동작 로직</td></tr>
     <tr><td><code>mfa.html</code> / <code>mfa.css</code> / <code>mfa.js</code></td><td>Entra 관리 센터 — 사용자 단위 다단계 인증 (새 탭)</td></tr>
+    <tr><td><code>sharepoint.html</code></td><td>SharePoint 관리 센터 — OneDrive 보존/저장 한도 설정 (새 탭)</td></tr>
     <tr><td><code>manual.html</code></td><td>이 매뉴얼</td></tr>
   </table>
   <table>

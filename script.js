@@ -1723,9 +1723,9 @@ document.getElementById('editTeamX').addEventListener('click', () => {
 // =====================================================
 // 활성 팀 및 그룹: 탭 전환 (Teams / 메일 그룹 / 보안 그룹)
 // =====================================================
-document.querySelectorAll('.team-tab').forEach((tab) => {
+document.querySelectorAll('#page-teams .team-tab').forEach((tab) => {
   tab.addEventListener('click', () => {
-    document.querySelectorAll('.team-tab').forEach((t) => t.classList.remove('active'));
+    document.querySelectorAll('#page-teams .team-tab').forEach((t) => t.classList.remove('active'));
     tab.classList.add('active');
     document.querySelectorAll('#page-teams .tab-panel').forEach((panel) => {
       panel.hidden = panel.id !== tab.dataset.tab;
@@ -2173,6 +2173,7 @@ function openUserDetail(user) {
   udUser.aliases = udUser.aliases || [];
   udUser.groups = udUser.groups || [];
   fillUdMain();
+  showUdTab('account'); // 항상 계정 탭부터
   // 로그아웃 안내 초기화
   document.getElementById('udSignout').hidden = false;
   document.getElementById('udSignoutMsg').hidden = true;
@@ -2555,3 +2556,131 @@ document.getElementById('udSaveRoles').addEventListener('click', () => {
 
 // 초대 전자 메일 보내기 (표시용)
 document.getElementById('udInviteBtn').addEventListener('click', () => {});
+
+// =====================================================
+// 세부 정보: 탭 전환 (계정 / 라이선스 및 앱 / OneDrive)
+// =====================================================
+const UD_TAB_CONTENT = {
+  account: 'udTabAccount',
+  licenses: 'udTabLicenses',
+  onedrive: 'udTabOneDrive',
+  empty: 'udTabEmpty',
+  empty2: 'udTabEmpty',
+};
+
+function showUdTab(tabName) {
+  document.querySelectorAll('.ud-tabs .team-tab').forEach((t) => {
+    t.classList.toggle('active', t.dataset.udtab === tabName);
+  });
+  const contentId = UD_TAB_CONTENT[tabName] || 'udTabAccount';
+  ['udTabAccount', 'udTabLicenses', 'udTabOneDrive', 'udTabEmpty'].forEach((id) => {
+    document.getElementById(id).hidden = id !== contentId;
+  });
+  if (tabName === 'licenses') fillUdLicenses();
+  if (tabName === 'onedrive') fillUdOneDrive();
+}
+
+document.querySelectorAll('.ud-tabs .team-tab').forEach((tab) => {
+  tab.addEventListener('click', () => showUdTab(tab.dataset.udtab));
+});
+
+// ----- 라이선스 및 앱 탭 -----
+document.getElementById('udlList').innerHTML = PL_LICENSES.map(
+  (lic) => `
+  <label class="license-item">
+    <input type="checkbox" class="udl-check" data-name="${lic.name}">
+    <span>
+      <div class="license-name">${lic.name}</div>
+      <div class="license-avail">${lic.avail}</div>
+    </span>
+  </label>`
+).join('');
+
+function udlSelected() {
+  return [...document.querySelectorAll('.udl-check:checked')].map((cb) => cb.dataset.name);
+}
+
+function updateUdlCounts() {
+  const sel = udlSelected();
+  document.getElementById('udlCount').textContent = sel.length;
+  document.getElementById('udlAppCount').textContent = sel.reduce(
+    (n, name) => n + (PL_APPS[name] || []).length, 0
+  );
+}
+
+function renderUdlApps() {
+  const items = udlSelected().flatMap((name) =>
+    (PL_APPS[name] || []).map((app) => ({ app, lic: name }))
+  );
+  document.getElementById('udlAppList').innerHTML = items.length
+    ? items
+        .map(
+          (it) => `
+    <label class="app-item">
+      <input type="checkbox" checked>
+      <span>
+        <div class="app-name">${it.app}</div>
+        <div class="app-sub">${it.lic}</div>
+      </span>
+    </label>`
+        )
+        .join('')
+    : '<div class="gm-empty">표시할 앱이 없습니다. 라이선스를 먼저 선택하세요.</div>';
+}
+
+// 사용자의 현재 라이선스로 체크 상태 채우기
+function fillUdLicenses() {
+  const current = udUser.license === '-' ? [] : udUser.license.split(' , ');
+  document.querySelectorAll('.udl-check').forEach((cb) => {
+    cb.checked = current.includes(cb.dataset.name);
+  });
+  updateUdlCounts();
+  renderUdlApps();
+  document.getElementById('udlSave').disabled = true;
+}
+
+document.getElementById('udlList').addEventListener('change', (e) => {
+  if (!e.target.classList.contains('udl-check')) return;
+  updateUdlCounts();
+  renderUdlApps();
+  document.getElementById('udlSave').disabled = false;
+});
+
+// 라이선스/앱 섹션 접기·펼치기
+[
+  ['udlHeader', 'udlList'],
+  ['udlAppsHeader', 'udlAppsSection'],
+].forEach(([headerId, sectionId]) => {
+  document.getElementById(headerId).addEventListener('click', () => {
+    const section = document.getElementById(sectionId);
+    section.hidden = !section.hidden;
+    document.getElementById(headerId).querySelector('.collapse-chevron').classList.toggle('up', !section.hidden);
+  });
+});
+
+// 저장 → 사용자 라이선스에 실제 반영
+document.getElementById('udlSave').addEventListener('click', () => {
+  const sel = udlSelected();
+  udUser.license = sel.length ? sel.join(' , ') : '-';
+  renderUsers(STUDENTS);
+  updateUdlCounts();
+  document.getElementById('udlSave').disabled = true;
+});
+
+// ----- OneDrive 탭 -----
+function fillUdOneDrive() {
+  document.getElementById('udOdAccess').textContent =
+    `${udUser.display} 님의 OneDrive 파일을 보고 편집할 링크를 만듭니다.`;
+  document.getElementById('udOdShare').textContent =
+    `${udUser.display}의 파일 및 폴더의 외부 공유를 제어합니다.`;
+}
+
+// SharePoint 관리 센터 새 탭 연결
+document.getElementById('udOdRetention').addEventListener('click', (e) => {
+  e.preventDefault();
+  window.open('sharepoint.html#retention', '_blank');
+});
+document.getElementById('udOdStorage').addEventListener('click', (e) => {
+  e.preventDefault();
+  window.open('sharepoint.html#storage', '_blank');
+});
