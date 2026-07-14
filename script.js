@@ -2082,3 +2082,476 @@ document.getElementById('plDownload').addEventListener('click', (e) => {
 document.getElementById('plX').addEventListener('click', () => {
   licensePanel.hidden = true;
 });
+
+// =====================================================
+// 우측 하단 플로팅 버튼 → 사용자 매뉴얼 (새 탭)
+// =====================================================
+document.getElementById('manualBtn').addEventListener('click', () => {
+  window.open('manual.html', '_blank');
+});
+
+// =====================================================
+// 사용자 세부 정보 패널 (활성 사용자에서 이름 클릭)
+// =====================================================
+const userDetailPanel = document.getElementById('userDetailPanel');
+let udUser = null;
+let udView = 'main';
+let udEmailDraft = null; // 편집 중인 기본 이메일 로컬 파트
+let udAliasDraft = [];
+
+// 표시 이름에서 성/이름 분리 ([x학년 y반] 접두사 제거)
+// 연락처 정보 관리에서 직접 입력한 값이 있으면 그 값을 우선 사용
+function udNameParts(user) {
+  if (user.contact && (user.contact.first || user.contact.last)) {
+    return { first: user.contact.first || '', last: user.contact.last || '' };
+  }
+  const name = user.display.replace(/^\[[^\]]*\]/, '');
+  if (/^[A-Za-z]/.test(name)) {
+    const parts = name.split(/[_\s]+/);
+    return { last: parts[0] || '', first: parts.slice(1).join('_') || '' };
+  }
+  return { last: name[0] || '', first: name.slice(1) || '' };
+}
+
+// 아바타: 영문이면 이름+성 이니셜(예: test01+daegu → TD), 한글이면 사람 아이콘
+function udAvatarContent(user) {
+  const { first, last } = udNameParts(user);
+  const fi = (first[0] || '').toUpperCase();
+  const li = (last[0] || '').toUpperCase();
+  if (/[A-Z]/.test(li)) return (fi + li) || li;
+  return `<svg viewBox="0 0 20 20" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.3">
+    <circle cx="10" cy="7" r="3.2"/><path d="M4 17c.9-2.8 3.2-4.2 6-4.2s5.1 1.4 6 4.2"/>
+  </svg>`;
+}
+
+function fillUdMain() {
+  const { first, last } = udNameParts(udUser);
+  document.getElementById('udAvatar').innerHTML = udAvatarContent(udUser);
+  document.getElementById('udName').textContent = udUser.display;
+  document.getElementById('udEmailValue').textContent = udUser.id;
+  document.getElementById('udDisplay').textContent = udUser.display;
+  document.getElementById('udFirst').textContent = first;
+  document.getElementById('udLast').textContent = last;
+
+  const aliasEl = document.getElementById('udAliasValue');
+  aliasEl.hidden = !(udUser.aliases && udUser.aliases.length);
+  aliasEl.textContent = (udUser.aliases || []).join(', ');
+
+  document.getElementById('udGroupsValue').textContent =
+    udUser.groups && udUser.groups.length
+      ? udUser.groups.map((g) => g.name).join(', ')
+      : '제공된 항목 없음';
+
+  document.getElementById('udRoleValue').textContent =
+    udUser.adminAccess && udUser.adminRoles && udUser.adminRoles.length
+      ? udUser.adminRoles.join(', ')
+      : '관리자 액세스 권한 없음';
+}
+
+function showUdView(view) {
+  udView = view;
+  const views = {
+    udMain: 'main', udEmail: 'email', udGroups: 'groups', udAssign: 'assign',
+    udContact: 'contact', udDevices: 'devices', udRoles: 'roles',
+  };
+  Object.entries(views).forEach(([id, v]) => {
+    document.getElementById(id).hidden = v !== view;
+  });
+  document.getElementById('udBack').hidden = view === 'main';
+  document.getElementById('udFooter').hidden = view === 'main' || view === 'groups';
+  document.getElementById('udSaveEmail').hidden = view !== 'email';
+  document.getElementById('udAssignAdd').hidden = view !== 'assign';
+  document.getElementById('udAssignCancel').hidden = view !== 'assign';
+  document.getElementById('udSaveContact').hidden = view !== 'contact';
+  document.getElementById('udSaveRoles').hidden = view !== 'roles';
+  document.getElementById('udInviteBtn').hidden = view !== 'devices';
+  userDetailPanel.querySelector('.delete-body').scrollTop = 0;
+}
+
+function openUserDetail(user) {
+  udUser = user;
+  udUser.aliases = udUser.aliases || [];
+  udUser.groups = udUser.groups || [];
+  fillUdMain();
+  // 로그아웃 안내 초기화
+  document.getElementById('udSignout').hidden = false;
+  document.getElementById('udSignoutMsg').hidden = true;
+  showUdView('main');
+  userDetailPanel.hidden = false;
+}
+
+// 활성 사용자 목록에서 이름 클릭 → 세부 정보
+tbody.addEventListener('click', (e) => {
+  const nameEl = e.target.closest('.display-name');
+  if (nameEl) {
+    const idx = Number(nameEl.closest('tr').dataset.index);
+    openUserDetail(lastRendered[idx]);
+  }
+});
+
+// 닫기 / 새로 고침 / 뒤로
+document.getElementById('udX').addEventListener('click', () => (userDetailPanel.hidden = true));
+document.getElementById('udRefresh').addEventListener('click', fillUdMain);
+document.getElementById('udBack').addEventListener('click', () => {
+  showUdView(udView === 'assign' ? 'groups' : 'main');
+});
+
+// 빠른 작업: 암호 재설정 / 사용자 삭제 (기존 패널 재사용)
+document.getElementById('udResetPw').addEventListener('click', () => {
+  userDetailPanel.hidden = true;
+  openResetPanel([udUser]);
+});
+document.getElementById('udDelete').addEventListener('click', () => {
+  userDetailPanel.hidden = true;
+  openDeletePanel([udUser]);
+});
+
+// 다단계 인증 관리 → MFA 페이지 새 탭
+document.getElementById('udMfaLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  saveStudentsToStorage();
+  window.open('mfa.html', '_blank');
+});
+
+// 모든 세션에서 로그아웃 → 안내 문구로 전환
+document.getElementById('udSignout').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('udSignout').hidden = true;
+  document.getElementById('udSignoutMsg').hidden = false;
+});
+
+// ----- 사용자 이름 및 전자 메일 관리 -----
+function renderUdAliasList() {
+  document.getElementById('udAliasList').innerHTML = udAliasDraft
+    .map((a) => `<li><span>${a}</span></li>`)
+    .join('');
+}
+
+function openUdEmailView() {
+  const local = udUser.id.split('@')[0];
+  document.getElementById('udEmailDesc').textContent =
+    `기본 전자 메일도 사용자 이름인 경우 기본 전자 메일을 변경하면 현재 사용자 이름이 변경됩니다. 별칭은 사람들이 전자 메일을 보낼 때 사용할 수 있는 또 다른 전자 메일 주소입니다 ${local}.`;
+  document.getElementById('udPrimaryText').textContent = udUser.id;
+  document.getElementById('udPrimaryRow').hidden = false;
+  document.getElementById('udPrimaryEdit').hidden = true;
+  document.getElementById('udAliasInput').value = '';
+  document.getElementById('udAliasAdd').disabled = true;
+  udEmailDraft = null;
+  udAliasDraft = [...udUser.aliases];
+  renderUdAliasList();
+  document.getElementById('udSaveEmail').disabled = true;
+  showUdView('email');
+}
+
+document.querySelectorAll('.ud-manage-email').forEach((link) => {
+  link.addEventListener('click', (e) => {
+    e.preventDefault();
+    openUdEmailView();
+  });
+});
+
+// 연필 → 기본 이메일 편집
+document.getElementById('udEditEmail').addEventListener('click', () => {
+  const [local, domain] = udUser.id.split('@');
+  document.getElementById('udPrimaryRow').hidden = true;
+  document.getElementById('udPrimaryEdit').hidden = false;
+  document.getElementById('udPrimaryInput').value = local;
+  document.getElementById('udPrimaryDomain').textContent = domain;
+});
+
+document.getElementById('udPrimaryInput').addEventListener('input', (e) => {
+  udEmailDraft = e.target.value.trim();
+  document.getElementById('udSaveEmail').disabled =
+    !udEmailDraft && udAliasDraft.length === udUser.aliases.length;
+});
+
+// 별칭 추가
+document.getElementById('udAliasInput').addEventListener('input', (e) => {
+  document.getElementById('udAliasAdd').disabled = !e.target.value.trim();
+});
+
+document.getElementById('udAliasAdd').addEventListener('click', () => {
+  const name = document.getElementById('udAliasInput').value.trim();
+  if (!name) return;
+  udAliasDraft.push(name + '@' + document.getElementById('udAliasDomain').value);
+  renderUdAliasList();
+  document.getElementById('udAliasInput').value = '';
+  document.getElementById('udAliasAdd').disabled = true;
+  document.getElementById('udSaveEmail').disabled = false;
+});
+
+// 변경 내용 저장 → 실제 반영
+document.getElementById('udSaveEmail').addEventListener('click', () => {
+  if (udEmailDraft) {
+    const domain = udUser.id.split('@')[1];
+    udUser.id = udEmailDraft + '@' + domain;
+  }
+  udUser.aliases = [...udAliasDraft];
+  renderUsers(STUDENTS);
+  fillUdMain();
+  showUdView('main');
+});
+
+// ----- 그룹 관리 -----
+function renderUdGroups() {
+  const rows = udUser.groups
+    .map((g) => `
+    <tr>
+      <td class="col-check"><input type="checkbox"></td>
+      <td><b>${g.name}</b></td>
+      <td>${g.email}</td>
+    </tr>`)
+    .join('');
+  document.getElementById('udGroupRows').innerHTML = rows;
+  document.getElementById('udGroupsEmpty').hidden = udUser.groups.length > 0;
+}
+
+document.getElementById('udManageGroups').addEventListener('click', (e) => {
+  e.preventDefault();
+  // 계정 탭에서 새로 열 때는 저장 배너 숨김
+  document.getElementById('udGroupsInfo').hidden = true;
+  document.getElementById('udGroupsSaved').hidden = true;
+  renderUdGroups();
+  showUdView('groups');
+});
+
+// ----- 멤버십 할당 -----
+function renderUdAssign() {
+  const q = document.getElementById('udAssignSearch').value.trim().toLowerCase();
+  const memberEmails = new Set(udUser.groups.map((g) => g.email));
+  const list = TEAMS.filter(
+    (t) => !memberEmails.has(t.email) &&
+      (!q || t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q))
+  );
+  document.getElementById('udAssignRows').innerHTML = list.length
+    ? list
+        .map(
+          (t) => `
+    <tr>
+      <td class="col-check"><input type="checkbox" class="ud-assign-check" data-email="${t.email}"></td>
+      <td>${t.name}</td>
+      <td>${t.email}</td>
+    </tr>`
+        )
+        .join('')
+    : '<tr><td colspan="3" class="gm-empty">할당할 수 있는 그룹이 없습니다.</td></tr>';
+  document.getElementById('udAssignAdd').disabled = true;
+  document.getElementById('udAssignAll').checked = false;
+}
+
+document.getElementById('udAssignBtn').addEventListener('click', () => {
+  document.getElementById('udAssignSearch').value = '';
+  renderUdAssign();
+  showUdView('assign');
+});
+
+document.getElementById('udAssignSearch').addEventListener('input', renderUdAssign);
+
+document.getElementById('udAssignRows').addEventListener('change', () => {
+  document.getElementById('udAssignAdd').disabled =
+    document.querySelectorAll('.ud-assign-check:checked').length === 0;
+});
+
+document.getElementById('udAssignAll').addEventListener('change', (e) => {
+  document.querySelectorAll('.ud-assign-check').forEach((cb) => (cb.checked = e.target.checked));
+  document.getElementById('udAssignAdd').disabled =
+    document.querySelectorAll('.ud-assign-check:checked').length === 0;
+});
+
+document.getElementById('udAssignAdd').addEventListener('click', () => {
+  [...document.querySelectorAll('.ud-assign-check:checked')].forEach((cb) => {
+    const team = TEAMS.find((t) => t.email === cb.dataset.email);
+    if (team) udUser.groups.push({ name: team.name, email: team.email });
+  });
+  fillUdMain();
+  renderUdGroups();
+  // 실제 화면처럼 안내 배너 + "저장됨" 표시
+  document.getElementById('udGroupsInfo').hidden = false;
+  document.getElementById('udGroupsSaved').hidden = false;
+  showUdView('groups');
+});
+
+document.getElementById('udAssignCancel').addEventListener('click', () => showUdView('groups'));
+
+// =====================================================
+// 세부 정보: 연락처 정보 관리
+// =====================================================
+function openUdContact() {
+  const { first, last } = udNameParts(udUser);
+  const c = udUser.contact || {};
+  document.getElementById('udcFirst').value = c.first || first;
+  document.getElementById('udcLast').value = c.last || last;
+  document.getElementById('udcDisplay').value = udUser.display;
+  document.getElementById('udcTitle').value = c.title || '';
+  document.getElementById('udcDept').value = c.dept || '';
+  document.getElementById('udcOffice').value = c.office || '';
+  document.getElementById('udcPhone').value = c.phone || '';
+  document.getElementById('udcFax').value = c.fax || '';
+  document.getElementById('udcMobile').value = c.mobile || '';
+  document.getElementById('udcAddr').value = c.addr || '';
+  document.getElementById('udSaveContact').disabled = true;
+  showUdView('contact');
+}
+
+document.getElementById('udManageContact').addEventListener('click', (e) => {
+  e.preventDefault();
+  openUdContact();
+});
+
+document.querySelectorAll('.udc-input').forEach((el) => {
+  el.addEventListener('input', () => {
+    document.getElementById('udSaveContact').disabled =
+      !document.getElementById('udcDisplay').value.trim();
+  });
+});
+
+document.getElementById('udSaveContact').addEventListener('click', () => {
+  udUser.contact = {
+    first: document.getElementById('udcFirst').value.trim(),
+    last: document.getElementById('udcLast').value.trim(),
+    title: document.getElementById('udcTitle').value.trim(),
+    dept: document.getElementById('udcDept').value.trim(),
+    office: document.getElementById('udcOffice').value.trim(),
+    phone: document.getElementById('udcPhone').value.trim(),
+    fax: document.getElementById('udcFax').value.trim(),
+    mobile: document.getElementById('udcMobile').value.trim(),
+    addr: document.getElementById('udcAddr').value.trim(),
+  };
+  udUser.display = document.getElementById('udcDisplay').value.trim();
+  renderUsers(STUDENTS);
+  fillUdMain();
+  showUdView('main');
+});
+
+// =====================================================
+// 세부 정보: Microsoft 365 활성화 (로그인된 장치)
+// =====================================================
+function openUdDevices() {
+  const fullName = udUser.display.replace(/^\[[^\]]*\]/, '');
+  const local = (udUser.id.split('@')[0] || 'user').replace(/[^a-z0-9]/gi, '').toUpperCase() || 'USER';
+
+  document.getElementById('udDevTitle').textContent =
+    `${udUser.display}이 Microsoft 365에 로그인되어 있는 장치`;
+  document.getElementById('udDevDesc').textContent =
+    `모든 장치에서 ${udUser.display}을 초대하여 다운로드하고 로그인 Microsoft 365에 로그인합니다. 장치를 비활성화 해도 장치에서 Microsoft 365 앱 이나 데이터가 제거되는 것은 아니지만 원격으로 Microsoft 365에서 로그아웃할 수 있습니다.`;
+
+  const devices = [
+    { name: `${fullName}의 MacBook Pro`, os: 'Mac OSX 26.5.1', date: '2026. 6. 10.' },
+    { name: `${local}_WIN`, os: 'Microsoft Windows 10 Home', date: '2026. 3. 27.' },
+    { name: 'DESKTOP-UULQK0P', os: 'Microsoft Windows 10 Pro', date: '2026. 6. 10.' },
+    { name: '프로젝트실2', os: 'Microsoft Windows 10 Pro', date: '2026. 6. 9.' },
+    { name: '콘텐츠제작실2', os: 'Microsoft Windows 10 Enterprise', date: '2026. 5. 19.' },
+    { name: fullName, os: 'Microsoft Windows 10 Pro', date: '2026. 5. 20.' },
+    { name: fullName, os: 'Microsoft Windows 10 Pro', date: '2026. 5. 21.' },
+    { name: fullName, os: 'Microsoft Windows 10 Pro', date: '2026. 4. 20.' },
+  ];
+
+  document.getElementById('udDeviceRows').innerHTML = devices
+    .map(
+      (d) => `
+    <tr>
+      <td>${d.name}</td>
+      <td>${d.os}</td>
+      <td>${d.date}</td>
+      <td>
+        <button class="dev-remove" title="비활성화">
+          <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/>
+          </svg>
+        </button>
+      </td>
+    </tr>`
+    )
+    .join('');
+  showUdView('devices');
+}
+
+document.getElementById('udM365Link').addEventListener('click', (e) => {
+  e.preventDefault();
+  openUdDevices();
+});
+
+// X → 해당 장치 비활성화(목록에서 제거)
+document.getElementById('udDeviceRows').addEventListener('click', (e) => {
+  const btn = e.target.closest('.dev-remove');
+  if (btn) btn.closest('tr').remove();
+});
+
+// =====================================================
+// 세부 정보: 관리자 역할 관리
+// =====================================================
+const UD_ROLES = [
+  'AI 관리자', 'Exchange 관리자', 'SharePoint 관리자', 'Teams 관리자', '사용자 관리자',
+  '사용자 환경 성공 관리자', '서비스 지원 관리자', '전역 관리자', '전역 독자', '지원 센터 관리자',
+];
+
+document.getElementById('udrList').innerHTML = UD_ROLES.map(
+  (role) => `
+  <label class="udr-item">
+    <input type="checkbox" class="udr-check" data-role="${role}" disabled>
+    <span>${role}</span>
+    <span class="info-icon">&#9432;</span>
+  </label>`
+).join('');
+
+function udRoleMode() {
+  return document.querySelector('input[name="udRoleMode"]:checked').value;
+}
+
+function applyUdRoleMode() {
+  const admin = udRoleMode() === 'admin';
+  document.querySelectorAll('.udr-check').forEach((cb) => {
+    cb.disabled = !admin;
+    if (!admin) cb.checked = false;
+  });
+  document.getElementById('udrList').classList.toggle('enabled', admin);
+}
+
+function openUdRoles() {
+  document.getElementById('udrUserName').textContent = udUser.display;
+  const admin = !!udUser.adminAccess;
+  document.querySelector(`input[name="udRoleMode"][value="${admin ? 'admin' : 'user'}"]`).checked = true;
+  document.querySelectorAll('.udr-check').forEach((cb) => {
+    cb.checked = admin && (udUser.adminRoles || []).includes(cb.dataset.role);
+  });
+  applyUdRoleMode();
+  // 재설정: applyUdRoleMode가 체크를 지웠을 수 있으니 다시 반영
+  if (admin) {
+    document.querySelectorAll('.udr-check').forEach((cb) => {
+      cb.checked = (udUser.adminRoles || []).includes(cb.dataset.role);
+    });
+  }
+  document.getElementById('udSaveRoles').disabled = true;
+  showUdView('roles');
+}
+
+document.getElementById('udManageRoles').addEventListener('click', (e) => {
+  e.preventDefault();
+  openUdRoles();
+});
+
+// 라디오: 사용자 → 체크박스 비활성, 관리 센터 액세스 → 다중 선택 활성
+document.querySelectorAll('input[name="udRoleMode"]').forEach((radio) => {
+  radio.addEventListener('change', () => {
+    applyUdRoleMode();
+    document.getElementById('udSaveRoles').disabled = false;
+  });
+});
+
+document.getElementById('udrList').addEventListener('change', (e) => {
+  if (e.target.classList.contains('udr-check')) {
+    document.getElementById('udSaveRoles').disabled = false;
+  }
+});
+
+document.getElementById('udSaveRoles').addEventListener('click', () => {
+  udUser.adminAccess = udRoleMode() === 'admin';
+  udUser.adminRoles = udUser.adminAccess
+    ? [...document.querySelectorAll('.udr-check:checked')].map((cb) => cb.dataset.role)
+    : [];
+  fillUdMain();
+  showUdView('main');
+});
+
+// 초대 전자 메일 보내기 (표시용)
+document.getElementById('udInviteBtn').addEventListener('click', () => {});

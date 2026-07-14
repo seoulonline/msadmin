@@ -1610,6 +1610,239 @@ select.grid-input { min-width: 170px; cursor: pointer; }
   to { transform: rotate(360deg); }
 }
 
+/* ===== 사용자 세부 정보 패널 ===== */
+.ud-panel { width: 900px; }
+
+.ud-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  margin-bottom: 6px;
+}
+
+.ud-avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ud-avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--fluent-blue);
+  color: #fff;
+  font-size: 30px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ud-photo { font-size: 12.5px; }
+
+.ud-name {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 6px 0 14px;
+}
+
+.ud-actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.ud-action {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: var(--text-primary);
+  padding: 3px 2px;
+}
+.ud-action svg { color: var(--fluent-blue); }
+.ud-action:hover { text-decoration: underline; }
+
+.ud-tabs { margin: 18px 0 28px; }
+
+.ud-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px 44px;
+  margin-bottom: 34px;
+}
+
+.ud-field { min-width: 0; }
+
+.ud-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ud-value {
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin-bottom: 5px;
+  word-break: break-all;
+}
+
+.ud-link {
+  display: inline-block;
+  font-size: 13.5px;
+  color: var(--fluent-blue);
+}
+.ud-link:hover { text-decoration: underline; }
+
+.ud-signout-msg { margin-top: 4px; }
+
+.ud-section {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 6px 0 22px;
+}
+
+.ud-bottom { margin-bottom: 10px; }
+
+/* 사용자 이름 및 전자 메일 관리 */
+.ud-sub {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 26px 0 12px;
+}
+
+.ud-primary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  max-width: 760px;
+  border-bottom: 1px solid #8a8886;
+  padding: 6px 2px 8px;
+  font-size: 14px;
+}
+
+.ud-primary-edit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 760px;
+  margin-top: 6px;
+}
+.ud-primary-edit .text-input { max-width: 320px; }
+.ud-primary-domain { font-size: 14px; }
+
+.ud-alias-title { margin-top: 40px; }
+
+.alias-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 720px;
+}
+.alias-col label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.alias-col { flex: 1; }
+.alias-domain { flex: 0 0 260px; }
+.alias-row .at-sign { padding-bottom: 8px; }
+.alias-row .btn { flex-shrink: 0; }
+.alias-row .btn:disabled {
+  background: #f0f0f0;
+  border-color: #f0f0f0;
+  color: #a0a0a0;
+  cursor: default;
+}
+
+.alias-list {
+  list-style: none;
+  margin-top: 18px;
+  max-width: 720px;
+}
+.alias-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13.5px;
+  padding: 9px 4px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* 그룹 관리 / 멤버십 할당 */
+.ud-assign-open {
+  color: var(--text-primary);
+  margin-bottom: 14px;
+}
+.ud-assign-open svg { color: var(--fluent-blue); }
+
+.ud-group-table td { font-size: 13.5px; }
+.ud-group-table .col-check { width: 36px; }
+.ud-group-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fluent-blue);
+  cursor: pointer;
+}
+
+.ud-assign-search { max-width: 100%; margin-bottom: 8px; }
+
+/* 연락처 정보 관리 */
+.udc-field { max-width: 100%; margin-bottom: 26px; }
+#udContact .two-col { margin-bottom: 26px; }
+#udContact .two-col .form-field { flex: 0 0 340px; }
+
+/* Microsoft 365 활성화 (장치) */
+.udd-tight { margin-top: -6px; }
+.ud-dev-table td { font-size: 13.5px; }
+.dev-remove {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--fluent-blue);
+}
+.dev-remove:hover { background: #f0f0f0; }
+
+/* 관리자 역할 관리 */
+.udr-title { margin-bottom: 6px; }
+.udr-selected { font-size: 13.5px; margin-bottom: 26px; }
+
+.udr-list { margin: 6px 0 10px 25px; }
+
+.udr-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  font-size: 14px;
+  color: #a0a0a0;
+  cursor: default;
+}
+.udr-list.enabled .udr-item {
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.udr-item input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--fluent-blue);
+}
+.udr-list.enabled .udr-item input { cursor: pointer; }
+
+.udr-more { border-top: 1px solid var(--border); padding-top: 16px; }
+.udr-more-title { font-weight: 400; font-size: 14px; }
+
 /* ===== 취소 확인 팝업 ===== */
 .confirm-overlay {
   position: fixed;
